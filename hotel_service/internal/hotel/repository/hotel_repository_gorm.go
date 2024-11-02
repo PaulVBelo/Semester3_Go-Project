@@ -17,7 +17,7 @@ func (r *hotelRepositoryWithGorm) AddHotel(hotel *model.Hotel) error {
 	return r.db.Create(hotel).Error
 }
 
-func (r *hotelRepositoryWithGorm)	GetHotelById(id int64) (*model.Hotel, error) {
+func (r *hotelRepositoryWithGorm) GetHotelById(id int64) (*model.Hotel, error) {
 	var hotel model.Hotel
 	if err := r.db.Preload("Rooms").First(&hotel, id).Error; err != nil {
 		return nil, err
@@ -25,12 +25,12 @@ func (r *hotelRepositoryWithGorm)	GetHotelById(id int64) (*model.Hotel, error) {
 	return &hotel, nil
 }
 
-func (r *hotelRepositoryWithGorm)	UpdateHotel(hotel *model.Hotel) error {
+func (r *hotelRepositoryWithGorm) UpdateHotel(hotel *model.Hotel) error {
 	return r.db.Save(hotel).Error
 }
 
-func (r *hotelRepositoryWithGorm)	GetAll() ([]model.Hotel, error) {
+func (r *hotelRepositoryWithGorm) GetAll() ([]model.Hotel, error) {
 	var hotels []model.Hotel
-	result := r.db.Find(&hotels)
+	result := r.db.Preload("Rooms").Find(&hotels)
 	return hotels, result.Error
 }

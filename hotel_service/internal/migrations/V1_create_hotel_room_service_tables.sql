@@ -2,7 +2,7 @@ CREATE TABLE hotel (
     hotel_id            BIGSERIAL           PRIMARY KEY,
     hotel_name          VARCHAR(64)         NOT NULL,
     hotel_address       VARCHAR(256)        NOT NULL,
-    phone_number        VARCHAR(48)         NOT NULL CHECK (phone_number ~ '^\+?\d+$'),
+    phone_number        VARCHAR(32)         NOT NULL CHECK (phone_number ~ '^\+?\d+$')
 );
 
 CREATE UNIQUE INDEX idx_name_adress ON hotel (hotel_name, hotel_address);
@@ -16,9 +16,11 @@ CREATE TABLE room (
 
 CREATE TABLE amenity (
     amenity_id          BIGSERIAL           PRIMARY KEY,
-    amenity_title       VARCHAR(128)        NOT NULL,
+    amenity_name       VARCHAR(128)         NOT NULL,
     hotel_id            BIGINT              REFERENCES  hotel.hotel_id      
 );
+
+CREATE UNIQUE INDEX idx_name_hotel ON hotel (hotel_name, hotel_address);
 
 CREATE TABLE room_x_amenity (
     room_id             BIGINT              REFERENCES room.room_id,
