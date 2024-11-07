@@ -4,10 +4,10 @@ import (
 	serviceH "hotel_service/internal/hotel/service"
 	serviceR "hotel_service/internal/room/service"
 	"hotel_service/internal/server/dto"
-
+	"time"
 	"net/http"
 	"strconv"
-
+	"github.com/sirupsen/logrus"
 	"github.com/gin-gonic/gin"
 )
 
@@ -92,21 +92,37 @@ func (s *Server) getRoomByID(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
+		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
+			"id": idStr,
+			"error": err.Error(),
+		}).Error("Invalid ID")
+
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
 	}
 
 	room, err := s.roomService.GetByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Hotel not found"})
+		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Failed to find room")
+
+		c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
 		return
 	}
+
+	logrus.WithTime(time.Now()).Info("Room successfully found")
+
 	c.JSON(http.StatusOK, room)
 }
 
 func (s *Server) createRoom(c *gin.Context) {
 	var room dto.RoomRequestDTO
 	if err := c.ShouldBindJSON(&room); err != nil {
+		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Invalid Input")
+
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}
@@ -114,37 +130,61 @@ func (s *Server) createRoom(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
+		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
+			"id": idStr,
+			"error": err.Error(),
+		}).Error("Invalid ID")
+
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
 	}
 
-	room.HotelID = id
+	roomRsp, err := s.roomService.CreateRoom(&room, id)
+	if err != nil {
+		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Failed to create room")
 
-	if err := s.roomService.CreateRoom(&room); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Tvoi soft gavno"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create room"})
 	}
 
-	c.JSON(http.StatusCreated, room)
+	logrus.WithTime(time.Now()).Info("Room successfully created")
+
+	c.JSON(http.StatusCreated, roomRsp)
 }
 
 func (s *Server) updateRoom(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
+		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
+			"id": idStr,
+			"error": err.Error(),
+		}).Error("Invalid ID")
+
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
 	}
 
 	var room dto.RoomRequestDTO
 	if err := c.ShouldBindJSON(&room); err != nil {
+		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Invalid Input")
+
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}
 
-	var roomRsp dto.RoomResponseDTO
-	if roomRsp, err := s.roomService.UpdateRoom(&room, id); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Tvoi soft gavno"})
+	roomRsp, err := s.roomService.UpdateRoom(&room, id);
+	if err != nil {
+		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Failed to update room")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update room", "details": err.Error()})
 	}
 
-	c.JSON(http.StatusCreated, room)
+	logrus.WithTime(time.Now()).Info("Room successfully updated")
+
+	c.JSON(http.StatusOK, roomRsp)
 }
