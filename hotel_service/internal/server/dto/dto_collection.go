@@ -1,33 +1,32 @@
 package dto
 
 type RoomRequestDTO struct {
-	Name		string
-	Price		string
-	Rooms		[]RoomRequestDTO
+	Name		string					`json:"name,omitempty"`
+	Price		string					`json:"price,omitempty"`
+	Amenities	[]string				`json:"amenities,omitempty"`
 }
 
 type HotelRequestDTO struct {
-	Name		string
-	Adress		string
+	Name		string					`json:"name,omitempty"`
+	Adress		string					`json:"adress,omitempty"`
+	Rooms 		[]RoomRequestDTO		`json:"rooms,omitempty"`
 }
 
 type RoomResponseDTO struct {
-	ID 			int64
-	Name		string
-	HotelID 	int64
-	Price		string
-	Amenities	[]AmenityResponseDTO	`json:"omitempty"`
+	ID 			int64					`json:"id"`
+	Name		string					`json:"name"`
+	Price		string					`json:"price"`
+	Amenities	[]AmenityResponseDTO	`json:"amenities,omitempty"`
 }
 
 type AmenityResponseDTO struct {
-	ID 			int64
-	Name		string
+	ID 			int64					`json:"id"`
+	Name		string					`json:"name"`
 }
 
 type HotelResponseDTO struct {
-	ID			int64
-	Name		string
-	Adress		string
-	Rooms		[]RoomResponseDTO
-	Amenities	[]AmenityResponseDTO
+	ID			int64					`json:"id"`
+	Name		string					`json:"name"`
+	Adress		string					`json:"adress"`
+	Rooms		[]RoomResponseDTO		`json:"rooms,omitempty"`
 }
