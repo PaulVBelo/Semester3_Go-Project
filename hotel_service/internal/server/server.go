@@ -2,8 +2,8 @@ package server
 
 import (
 	serviceH "hotel_service/internal/hotel/service"
-	"hotel_service/internal/server/dto"
 	serviceR "hotel_service/internal/room/service"
+	"hotel_service/internal/server/dto"
 
 	"net/http"
 	"strconv"
@@ -12,16 +12,16 @@ import (
 )
 
 type Server struct {
-	router					*gin.Engine
-	roomService				serviceR.RoomService
-	hotelService			serviceH.HotelService
+	router       *gin.Engine
+	roomService  serviceR.RoomService
+	hotelService serviceH.HotelService
 }
 
 func NewServer(hs serviceH.HotelService, rs serviceR.RoomService) *Server {
 	router := gin.Default()
 	s := &Server{
-		router: router,
-		roomService: rs,
+		router:       router,
+		roomService:  rs,
 		hotelService: hs,
 	}
 	s.routes()
@@ -54,7 +54,7 @@ func (s *Server) getHotelByID(c *gin.Context) {
 }
 
 func (s *Server) createHotel(c *gin.Context) {
-	var hotel dto.HotelDTO
+	var hotel dto.HotelRequestDTO
 	if err := c.ShouldBindJSON(&hotel); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
@@ -75,7 +75,7 @@ func (s *Server) updateHotel(c *gin.Context) {
 		return
 	}
 
-	var hotel dto.HotelDTO
+	var hotel dto.HotelRequestDTO
 	if err := c.ShouldBindJSON(&hotel); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
@@ -105,7 +105,7 @@ func (s *Server) getRoomByID(c *gin.Context) {
 }
 
 func (s *Server) createRoom(c *gin.Context) {
-	var room dto.RoomDTO
+	var room dto.RoomRequestDTO
 	if err := c.ShouldBindJSON(&room); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
@@ -135,15 +135,14 @@ func (s *Server) updateRoom(c *gin.Context) {
 		return
 	}
 
-	var room dto.RoomDTO
+	var room dto.RoomRequestDTO
 	if err := c.ShouldBindJSON(&room); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}
 
-	room.ID = id
-
-	if err := s.roomService.UpdateRoom(&room); err != nil {
+	var roomRsp dto.RoomResponseDTO
+	if roomRsp, err := s.roomService.UpdateRoom(&room, id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Tvoi soft gavno"})
 	}
 
