@@ -13,12 +13,12 @@ func NewAmenityRepository(db *gorm.DB) AmenityRepository {
 	return &amenityRepositoryWithGorm{db: db}
 }
 
-func (r *amenityRepositoryWithGorm) AddAmenity(amenity *model.Amenity) error {
-	return r.db.Create(amenity).Error
+func (r *amenityRepositoryWithGorm) AddAmenity(tx *gorm.DB, amenity *model.Amenity) error {
+	return tx.Create(amenity).Error
 }
 
-func (r *amenityRepositoryWithGorm) AddAmenities(amenities *[]model.Amenity) error {
-	return r.db.Create(amenities).Error
+func (r *amenityRepositoryWithGorm) AddAmenities(tx *gorm.DB, amenities *[]model.Amenity) error {
+	return tx.Create(amenities).Error
 }
 
 func (r *amenityRepositoryWithGorm) GetAmenityById(id int64) (*model.Amenity, error) {
@@ -29,12 +29,16 @@ func (r *amenityRepositoryWithGorm) GetAmenityById(id int64) (*model.Amenity, er
 	return &amenity, nil
 }
 
-func (r *amenityRepositoryWithGorm) UpdateAmenity(amenity *model.Amenity) error {
-	return r.db.Save(amenity).Error
-}
-
 func (r *amenityRepositoryWithGorm) GetAll() ([]model.Amenity, error) {
 	var amenities []model.Amenity
 	result := r.db.Find(&amenities)
 	return amenities, result.Error
+}
+
+func (r *amenityRepositoryWithGorm) GetAmenityIfExists(hotel_id int64, name string) (*model.Amenity, error) {
+	var amenity model.Amenity
+	if err := r.db.Where("name = ? AND hotel_id = ?", hotel_id, name).First(&amenity).Error; err != nil {
+		return nil, err
+	}
+	return &amenity, nil
 }

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 type RoomServiceImpl struct {
@@ -62,31 +63,72 @@ func (s *RoomServiceImpl)	CreateRoom(toCreate *dto.RoomRequestDTO, hotel_id int6
 
 	defer func() {
 		if err != nil {
-			s.roomRepository.Rollback(tx)
+			s.roomRepository.Rollback(tx)	
 		} else {
+			logrus.WithTime(time.Now()).Info("Room creation complete!")
 			s.roomRepository.Commit(tx)
 		}
 	}()
 
-	amenities := make([]am.Amenity, 0)
+	priceBigRat :=	new(big.Rat)
+	if _, ok := priceBigRat.SetString(toCreate.Price); !ok {
+		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Failed to create room: incorrect price format")
 
-	for _, am := range toCreate.Amenities {
-		
-		append(amenities, am.Amenity{
-			Name: am,
-			HotelId: hotel_id,
-		})
+		return nil, errors.New("Failed to create room")
 	}
 
 	room := mr.Room{
 		Name: toCreate.Name,
-		Price: new(big.Rat).SetString(toCreate.Price),
+		Price: *priceBigRat,
 		HotelID: hotel_id,
+		Amenities: make([]*am.Amenity, 0),
 	}
 
-	if err := s.roomRepository.AddRoom(tx, room); err!=nil {
+	for _, amName := range toCreate.Amenities {
+		existing, err := s.amenityRepository.GetAmenityIfExists(hotel_id, amName)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				newAmenity := &am.Amenity{
+					Name: amName,
+					HotelID: hotel_id,
+				}
+				if err := s.amenityRepository.AddAmenity(tx, newAmenity); err != nil {
+					return nil, err
+				}
+				room.Amenities = append(room.Amenities, newAmenity)
+
+				logrus.WithFields(logrus.Fields{
+					"id": newAmenity.ID,
+				}).Info("Amenity with name " + amName + "missing, created a new one")
+				continue
+			}
+
+			return nil, err
+		}
+		
+		room.Amenities = append(room.Amenities, existing)
+	}
+
+	logrus.Info("Amenity linkage complete")
+
+	if err := s.roomRepository.AddRoom(tx, &room); err!=nil {
+		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Failed to create room")
+
 		return nil, err
 	}
+
+	dto := &dto.RoomResponseDTO{
+		ID: room.ID,
+		Name: room.Name,
+		Price: room.Price.String(),
+		Amenities: toCreate.Amenities,
+	}
+
+	return dto, nil
 }
 
 func (s *RoomServiceImpl)	UpdateRoom(toUpdate *dto.RoomRequestDTO, room_id int64) (*dto.RoomResponseDTO, error) {
