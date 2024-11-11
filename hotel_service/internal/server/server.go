@@ -4,11 +4,12 @@ import (
 	serviceH "hotel_service/internal/hotel/service"
 	serviceR "hotel_service/internal/room/service"
 	"hotel_service/internal/server/dto"
-	"time"
 	"net/http"
 	"strconv"
-	"github.com/sirupsen/logrus"
+	"time"
+
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 type Server struct {
@@ -54,7 +55,7 @@ func (s *Server) getHotelByID(c *gin.Context) {
 }
 
 func (s *Server) createHotel(c *gin.Context) {
-	var hotel dto.HotelRequestDTO
+	var hotel dto.HotelCreateRequestDTO
 	if err := c.ShouldBindJSON(&hotel); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
@@ -75,7 +76,7 @@ func (s *Server) updateHotel(c *gin.Context) {
 		return
 	}
 
-	var hotel dto.HotelRequestDTO
+	var hotel dto.HotelCreateRequestDTO
 	if err := c.ShouldBindJSON(&hotel); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
@@ -93,7 +94,7 @@ func (s *Server) getRoomByID(c *gin.Context) {
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
 		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
-			"id": idStr,
+			"id":    idStr,
 			"error": err.Error(),
 		}).Error("Invalid ID")
 
@@ -117,7 +118,7 @@ func (s *Server) getRoomByID(c *gin.Context) {
 }
 
 func (s *Server) createRoom(c *gin.Context) {
-	var room dto.RoomRequestDTO
+	var room dto.RoomCreateRequestDTO
 	if err := c.ShouldBindJSON(&room); err != nil {
 		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
 			"error": err.Error(),
@@ -131,7 +132,7 @@ func (s *Server) createRoom(c *gin.Context) {
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
 		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
-			"id": idStr,
+			"id":    idStr,
 			"error": err.Error(),
 		}).Error("Invalid ID")
 
@@ -158,7 +159,7 @@ func (s *Server) updateRoom(c *gin.Context) {
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
 		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
-			"id": idStr,
+			"id":    idStr,
 			"error": err.Error(),
 		}).Error("Invalid ID")
 
@@ -166,7 +167,7 @@ func (s *Server) updateRoom(c *gin.Context) {
 		return
 	}
 
-	var room dto.RoomRequestDTO
+	var room dto.RoomUpdateRequestDTO
 	if err := c.ShouldBindJSON(&room); err != nil {
 		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
 			"error": err.Error(),
@@ -176,7 +177,7 @@ func (s *Server) updateRoom(c *gin.Context) {
 		return
 	}
 
-	roomRsp, err := s.roomService.UpdateRoom(&room, id);
+	roomRsp, err := s.roomService.UpdateRoom(&room, id)
 	if err != nil {
 		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
 			"error": err.Error(),
