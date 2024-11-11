@@ -13,12 +13,24 @@ func NewRoomRepository(db *gorm.DB) RoomRepository {
 	return &roomRepositoryWithGorm{db: db}
 }
 
-func (r *roomRepositoryWithGorm) AddRoom(room *model.Room) error {
-	return r.db.Create(room).Error
+func (r *roomRepositoryWithGorm) Begin() (*gorm.DB, error) {
+	return r.db.Begin(), nil
 }
 
-func (r *roomRepositoryWithGorm) AddRooms(rooms *[]model.Room) error {
-	return r.db.Create(rooms).Error
+func (r *roomRepositoryWithGorm) Commit(tx *gorm.DB) error {
+	return tx.Commit().Error
+}
+	
+func (r *roomRepositoryWithGorm) Rollback(tx *gorm.DB) error {
+	return tx.Rollback().Error
+}
+
+func ( r *roomRepositoryWithGorm) AddRoom(tx *gorm.DB, room *model.Room) error {
+	return tx.Create(room).Error
+}
+
+func (r *roomRepositoryWithGorm) AddRooms(tx *gorm.DB, rooms *[]model.Room) error {
+	return tx.Create(rooms).Error
 }
 
 func (r *roomRepositoryWithGorm) GetRoomById(id int64) (*model.Room, error) {
@@ -29,8 +41,8 @@ func (r *roomRepositoryWithGorm) GetRoomById(id int64) (*model.Room, error) {
 	return &room, nil
 }
 
-func (r *roomRepositoryWithGorm) UpdateRoom(room *model.Room) error {
-	return r.db.Save(room).Error
+func (r *roomRepositoryWithGorm) UpdateRoom(tx *gorm.DB, room *model.Room) error {
+	return tx.Save(room).Error
 }
 
 func (r *roomRepositoryWithGorm) GetAll() ([]model.Room, error) {

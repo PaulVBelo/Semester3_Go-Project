@@ -16,12 +16,7 @@ type RoomResponseDTO struct {
 	ID 			int64					`json:"id"`
 	Name		string					`json:"name"`
 	Price		string					`json:"price"`
-	Amenities	[]AmenityResponseDTO	`json:"amenities,omitempty"`
-}
-
-type AmenityResponseDTO struct {
-	ID 			int64					`json:"id"`
-	Name		string					`json:"name"`
+	Amenities	[]string	`json:"amenities,omitempty"`
 }
 
 type HotelResponseDTO struct {
