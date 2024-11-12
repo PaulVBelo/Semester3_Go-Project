@@ -26,12 +26,21 @@ func (s *HotelServiceImpl) GetByID(id int64) (*dto.HotelResponseDTO, error) {
 	if err != nil {
 		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
 			"error": err.Error(),
-		}).Error("Room not found")
+		}).Error("Hotel not found")
 
-		return nil, errors.New("Room not found")
+		return nil, errors.New("Hotel not found")
 	}
 
+	// Transfor rooms to dtos
 
+	dto := &dto.HotelResponseDTO {
+		ID: hotel.ID,
+		Name: hotel.Name,
+		Adress: hotel.Adress,
+		PhoneNumber: hotel.PhoneNumber,
+	}
+
+	return dto, nil
 }
 
 func (s *HotelServiceImpl) GetAll(id int64) (*dto.HotelResponseDTO, error) {
