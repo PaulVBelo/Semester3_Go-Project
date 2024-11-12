@@ -8,6 +8,7 @@ import (
 	rr "hotel_service/internal/room/repository"
 	"hotel_service/internal/server/dto"
 	"math/big"
+	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -84,6 +85,16 @@ func (s *RoomServiceImpl) CreateRoom(toCreate *dto.RoomCreateRequestDTO, hotel_i
 		Price:     *priceBigRat,
 		HotelID:   hotel_id,
 		Amenities: make([]*am.Amenity, 0),
+	}
+
+	dupes, ok := checkUnique(toCreate.Amenities)
+
+	if !ok {
+		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
+			"dupes": dupes,
+		}).Error("Duplicate amenity")
+
+		return nil, errors.New("Duplicate amenities: " + strings.Join(dupes, ", "))
 	}
 
 	for _, amName := range toCreate.Amenities {
@@ -175,6 +186,15 @@ func (s *RoomServiceImpl) UpdateRoom(toUpdate *dto.RoomUpdateRequestDTO, room_id
 	}
 
 	if len(toUpdate.Amenities) > 0 {
+		dupes, ok := checkUnique(toUpdate.Amenities)
+
+		if !ok {
+			logrus.WithTime(time.Now()).WithFields(logrus.Fields{
+				"dupes": dupes,
+			}).Error("Duplicate amenity")
+
+			return nil, errors.New("Duplicate amenities: " + strings.Join(dupes, ", "))
+		}
 		room.Amenities = make([]*am.Amenity, 0)
 
 		for _, amName := range toUpdate.Amenities {
@@ -220,4 +240,17 @@ func (s *RoomServiceImpl) UpdateRoom(toUpdate *dto.RoomUpdateRequestDTO, room_id
 	}
 
 	return dto, nil
+}
+
+func checkUnique(strings []string) ([]string, bool) { // DupeChecker
+	stringMap := make(map[string]int)
+	var duplicates []string
+	for _, str := range strings {
+		stringMap[str]++
+		if stringMap[str] == 2 {
+			duplicates = append(duplicates, str)
+		}
+	}
+	isUnique := len(duplicates) == 0
+	return duplicates, isUnique
 }
