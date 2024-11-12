@@ -26,8 +26,8 @@ func (r *HotelRepositoryWithGorm) Rollback(tx *gorm.DB) error {
 	return tx.Rollback().Error
 }
 
-func (r *HotelRepositoryWithGorm) AddHotel(hotel *model.Hotel) error {
-	return r.db.Create(hotel).Error
+func (r *HotelRepositoryWithGorm) AddHotel(tx *gorm.DB, hotel *model.Hotel) error {
+	return tx.Create(hotel).Error
 }
 
 func (r *HotelRepositoryWithGorm) GetHotelById(id int64) (*model.Hotel, error) {
@@ -38,8 +38,8 @@ func (r *HotelRepositoryWithGorm) GetHotelById(id int64) (*model.Hotel, error) {
 	return &hotel, nil
 }
 
-func (r *HotelRepositoryWithGorm) UpdateHotel(hotel *model.Hotel) error {
-	return r.db.Save(hotel).Error
+func (r *HotelRepositoryWithGorm) UpdateHotel(tx *gorm.DB, hotel *model.Hotel) error {
+	return tx.Save(hotel).Error
 }
 
 func (r *HotelRepositoryWithGorm) GetAll() ([]model.Hotel, error) {

@@ -11,8 +11,8 @@ type HotelRepository interface {
 	Commit(tx *gorm.DB) error
 	Rollback(tx *gorm.DB) error
 
-	AddHotel(hotel *model.Hotel) error
-	UpdateHotel(hotel *model.Hotel) error
+	AddHotel(tx *gorm.DB, hotel *model.Hotel) error
+	UpdateHotel(tx *gorm.DB, hotel *model.Hotel) error
 
 	GetHotelById(id int64) (*model.Hotel, error)
 	GetAll() ([]model.Hotel, error)
