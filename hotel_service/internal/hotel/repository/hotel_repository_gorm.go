@@ -1,23 +1,36 @@
 package repository
 
 import (
-	"gorm.io/gorm"
 	"hotel_service/internal/hotel/model"
+
+	"gorm.io/gorm"
 )
 
-type hotelRepositoryWithGorm struct {
+type HotelRepositoryWithGorm struct {
 	db *gorm.DB
 }
 
 func NewHotelRepository(db *gorm.DB) HotelRepository {
-	return &hotelRepositoryWithGorm{db: db}
+	return &HotelRepositoryWithGorm{db: db}
 }
 
-func (r *hotelRepositoryWithGorm) AddHotel(hotel *model.Hotel) error {
+func (r *HotelRepositoryWithGorm) Begin() (*gorm.DB, error) {
+	return r.db.Begin(), nil
+}
+
+func (r *HotelRepositoryWithGorm) Commit(tx *gorm.DB) error {
+	return tx.Commit().Error
+}
+
+func (r *HotelRepositoryWithGorm) Rollback(tx *gorm.DB) error {
+	return tx.Rollback().Error
+}
+
+func (r *HotelRepositoryWithGorm) AddHotel(hotel *model.Hotel) error {
 	return r.db.Create(hotel).Error
 }
 
-func (r *hotelRepositoryWithGorm) GetHotelById(id int64) (*model.Hotel, error) {
+func (r *HotelRepositoryWithGorm) GetHotelById(id int64) (*model.Hotel, error) {
 	var hotel model.Hotel
 	if err := r.db.Preload("Rooms").First(&hotel, id).Error; err != nil {
 		return nil, err
@@ -25,11 +38,11 @@ func (r *hotelRepositoryWithGorm) GetHotelById(id int64) (*model.Hotel, error) {
 	return &hotel, nil
 }
 
-func (r *hotelRepositoryWithGorm) UpdateHotel(hotel *model.Hotel) error {
+func (r *HotelRepositoryWithGorm) UpdateHotel(hotel *model.Hotel) error {
 	return r.db.Save(hotel).Error
 }
 
-func (r *hotelRepositoryWithGorm) GetAll() ([]model.Hotel, error) {
+func (r *HotelRepositoryWithGorm) GetAll() ([]model.Hotel, error) {
 	var hotels []model.Hotel
 	result := r.db.Preload("Rooms").Find(&hotels)
 	return hotels, result.Error

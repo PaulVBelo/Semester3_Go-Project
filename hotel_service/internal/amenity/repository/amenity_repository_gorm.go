@@ -1,27 +1,28 @@
 package repository
 
 import (
-	"gorm.io/gorm"
 	"hotel_service/internal/amenity/model"
+
+	"gorm.io/gorm"
 )
 
-type amenityRepositoryWithGorm struct {
+type AmenityRepositoryWithGorm struct {
 	db *gorm.DB
 }
 
 func NewAmenityRepository(db *gorm.DB) AmenityRepository {
-	return &amenityRepositoryWithGorm{db: db}
+	return &AmenityRepositoryWithGorm{db: db}
 }
 
-func (r *amenityRepositoryWithGorm) AddAmenity(tx *gorm.DB, amenity *model.Amenity) error {
+func (r *AmenityRepositoryWithGorm) AddAmenity(tx *gorm.DB, amenity *model.Amenity) error {
 	return tx.Create(amenity).Error
 }
 
-func (r *amenityRepositoryWithGorm) AddAmenities(tx *gorm.DB, amenities *[]model.Amenity) error {
+func (r *AmenityRepositoryWithGorm) AddAmenities(tx *gorm.DB, amenities *[]model.Amenity) error {
 	return tx.Create(amenities).Error
 }
 
-func (r *amenityRepositoryWithGorm) GetAmenityById(id int64) (*model.Amenity, error) {
+func (r *AmenityRepositoryWithGorm) GetAmenityById(id int64) (*model.Amenity, error) {
 	var amenity model.Amenity
 	if err := r.db.First(&amenity, id).Error; err != nil {
 		return nil, err
@@ -29,13 +30,13 @@ func (r *amenityRepositoryWithGorm) GetAmenityById(id int64) (*model.Amenity, er
 	return &amenity, nil
 }
 
-func (r *amenityRepositoryWithGorm) GetAll() ([]model.Amenity, error) {
+func (r *AmenityRepositoryWithGorm) GetAll() ([]model.Amenity, error) {
 	var amenities []model.Amenity
 	result := r.db.Find(&amenities)
 	return amenities, result.Error
 }
 
-func (r *amenityRepositoryWithGorm) GetAmenityIfExists(hotel_id int64, name string) (*model.Amenity, error) {
+func (r *AmenityRepositoryWithGorm) GetAmenityIfExists(hotel_id int64, name string) (*model.Amenity, error) {
 	var amenity model.Amenity
 	if err := r.db.Where("name = ? AND hotel_id = ?", hotel_id, name).First(&amenity).Error; err != nil {
 		return nil, err
