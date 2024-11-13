@@ -30,12 +30,22 @@ func NewServer(hs serviceH.HotelService, rs serviceR.RoomService) *Server {
 }
 
 func (s *Server) routes() {
-	s.router.GET("/hotels/:id", s.getHotelByID)
-	s.router.POST("/hotels", s.createHotel)
-	s.router.PUT("/hotels/:id", s.updateHotel)
+	s.router.GET("api/hotels", s.getAll)
+	s.router.GET("api/hotels/:id", s.getHotelByID)
+	s.router.POST("api/hotels", s.createHotel)
+	s.router.PUT("api/hotels/:id", s.updateHotel)
 	s.router.GET("/rooms/:id", s.getRoomByID)
-	s.router.POST("/hotels/:id/room", s.createRoom)
-	s.router.PUT("/rooms/:id", s.updateRoom)
+	s.router.POST("api/hotels/:id/room", s.createRoom)
+	s.router.PUT("api/rooms/:id", s.updateRoom)
+}
+
+func (s *Server) getAll(c *gin.Context) {
+	hotels, err := s.hotelService.GetAll()
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Not retrieved"})
+		return
+	}
+	c.JSON(http.StatusOK, hotels)
 }
 
 func (s *Server) getHotelByID(c *gin.Context) {
