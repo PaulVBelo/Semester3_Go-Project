@@ -31,5 +31,5 @@ type HotelResponseDTO struct {
 	Name   string            		`json:"name"`
 	Adress string            		`json:"adress"`
 	PhoneNumber	string				`json:"phone_number"`
-	Rooms  []RoomResponseDTO 		`json:"rooms,omitempty"`
+	Rooms  []*RoomResponseDTO 		`json:"rooms,omitempty"`
 }

@@ -31,9 +31,9 @@ func (s *HotelServiceImpl) GetByID(id int64) (*dto.HotelResponseDTO, error) {
 		return nil, errors.New("Hotel not found")
 	}
 
-	var roomDTOs []dto.RoomResponseDTO
+	var roomDTOs []*dto.RoomResponseDTO
 	for _, room := range hotel.Rooms {
-		roomDTO := dto.RoomResponseDTO{
+		roomDTO := &dto.RoomResponseDTO{
 			ID: room.ID,
 			Name: room.Name,
 			Price: room.Price.String(),
@@ -70,9 +70,9 @@ func (s *HotelServiceImpl) GetAll() ([]*dto.HotelResponseDTO, error) {
 
 	hotelDTOs := make([]*dto.HotelResponseDTO, len(hotels))
 	for i, hotel := range hotels {
-		roomDTOs := make([]dto.RoomResponseDTO, len(hotel.Rooms))
+		roomDTOs := make([]*dto.RoomResponseDTO, len(hotel.Rooms))
 		for j, room := range hotel.Rooms {
-			roomDTOs[j] = dto.RoomResponseDTO{
+			roomDTOs[j] = &dto.RoomResponseDTO{
 				ID: room.ID,
 				Name: room.Name,
 				Price: room.Price.String(),
