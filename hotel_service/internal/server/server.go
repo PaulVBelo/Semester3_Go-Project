@@ -87,7 +87,7 @@ func (s *Server) updateHotel(c *gin.Context) {
 		return
 	}
 
-	var hotel dto.HotelCreateRequestDTO
+	var hotel dto.HotelUpdateRequestDTO
 	if err := c.ShouldBindJSON(&hotel); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return

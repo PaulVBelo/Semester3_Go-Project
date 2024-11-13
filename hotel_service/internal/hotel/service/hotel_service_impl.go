@@ -227,8 +227,63 @@ func (s *HotelServiceImpl) CreateHotel(toCreate *dto.HotelCreateRequestDTO) (*dt
 	return dto, nil
 }
 
-func (s *HotelServiceImpl) UpdateHotel(id int64, hotel *dto.HotelCreateRequestDTO) (*dto.HotelShortResponseDTO, error) {
-	// Здесь упрощу логику - не буду обновлять трёхмерную развёртку, только сам отель
+func (s *HotelServiceImpl) UpdateHotel(id int64, toUpdate *dto.HotelUpdateRequestDTO) (*dto.HotelShortResponseDTO, error) {
+	tx, err := s.hotelRepository.Begin()
+
+	if err != nil {
+		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Failed to update hotel")
+
+		return nil, errors.New("Failed to update hotel")
+	}
+
+	defer func() {
+		if err != nil {
+			s.roomRepository.Rollback(tx)
+		} else {
+			logrus.WithTime(time.Now()).Info("Hotel update complete!")
+			s.roomRepository.Commit(tx)
+		}
+	}()
+
+	hotel, err := s.hotelRepository.GetHotelById(id)
+	if err != nil {
+		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Hotel not found")
+
+		return nil, errors.New("Hotel not found")
+	}
+
+	if (toUpdate.Name != nil) {
+		hotel.Name = *toUpdate.Name
+	}
+
+	if (toUpdate.Adress != nil) {
+		hotel.Adress = *toUpdate.Adress
+	}
+
+	if (toUpdate.PhoneNumber != nil) {
+		hotel.PhoneNumber = *toUpdate.PhoneNumber
+	}
+
+	if err := s.hotelRepository.UpdateHotel(tx, hotel); err != nil {
+		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Failed to update hotel")
+
+		return nil, errors.New("Failed to update hotel")
+	}
+
+	dto := &dto.HotelShortResponseDTO{
+		ID: hotel.ID,
+		Name: hotel.Name,
+		Adress: hotel.Adress,
+		PhoneNumber: hotel.PhoneNumber,
+	}
+
+	return dto, nil
 }
 
 func checkUnique(strings []string) ([]string, bool) { // DupeChecker

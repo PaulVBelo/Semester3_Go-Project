@@ -7,5 +7,5 @@ type HotelService interface {
 	GetAll() ([]*dto.HotelResponseDTO, error)
 	CreateHotel(toCreate *dto.HotelCreateRequestDTO) (*dto.HotelShortResponseDTO, error) 
 	//Create/Update возвращают только факт изменений 
-	UpdateHotel(id int64, toUpdate *dto.HotelCreateRequestDTO) (*dto.HotelShortResponseDTO, error)
+	UpdateHotel(id int64, toUpdate *dto.HotelUpdateRequestDTO) (*dto.HotelShortResponseDTO, error)
 }

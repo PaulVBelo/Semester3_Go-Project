@@ -19,6 +19,12 @@ type HotelCreateRequestDTO struct {
 	Rooms  	[]RoomCreateRequestDTO 	`json:"rooms,omitempty"`
 }
 
+type HotelUpdateRequestDTO struct {
+	Name   		*string                 	`json:"name"`
+	Adress 		*string                 	`json:"adress"`
+	PhoneNumber	*string						`json:"phone_number"`
+}
+
 type RoomResponseDTO struct {
 	ID        int64    `json:"id"`
 	Name      string   `json:"name"`
