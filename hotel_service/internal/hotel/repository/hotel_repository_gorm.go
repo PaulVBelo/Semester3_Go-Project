@@ -32,7 +32,7 @@ func (r *HotelRepositoryWithGorm) AddHotel(tx *gorm.DB, hotel *model.Hotel) erro
 
 func (r *HotelRepositoryWithGorm) GetHotelById(id int64) (*model.Hotel, error) {
 	var hotel model.Hotel
-	if err := r.db.Preload("Rooms").First(&hotel, id).Error; err != nil {
+	if err := r.db.Preload("Rooms.Amenities").First(&hotel, id).Error; err != nil {
 		return nil, err
 	}
 	return &hotel, nil
@@ -44,6 +44,6 @@ func (r *HotelRepositoryWithGorm) UpdateHotel(tx *gorm.DB, hotel *model.Hotel) e
 
 func (r *HotelRepositoryWithGorm) GetAll() ([]model.Hotel, error) {
 	var hotels []model.Hotel
-	result := r.db.Preload("Rooms").Find(&hotels)
+	result := r.db.Preload("Rooms.Amenities").Find(&hotels)
 	return hotels, result.Error
 }
