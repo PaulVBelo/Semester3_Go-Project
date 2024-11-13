@@ -33,3 +33,10 @@ type HotelResponseDTO struct {
 	PhoneNumber	string				`json:"phone_number"`
 	Rooms  []*RoomResponseDTO 		`json:"rooms,omitempty"`
 }
+
+type HotelShortResponseDTO struct {
+	ID     int64             		`json:"id"`
+	Name   string            		`json:"name"`
+	Adress string            		`json:"adress"`
+	PhoneNumber	string				`json:"phone_number"`
+}

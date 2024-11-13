@@ -4,7 +4,7 @@ import (
 	"errors"
 	am "hotel_service/internal/amenity/model"
 	ar "hotel_service/internal/amenity/repository"
-	mr "hotel_service/internal/room/model"
+	rm "hotel_service/internal/room/model"
 	rr "hotel_service/internal/room/repository"
 	"hotel_service/internal/server/dto"
 	"math/big"
@@ -80,7 +80,7 @@ func (s *RoomServiceImpl) CreateRoom(toCreate *dto.RoomCreateRequestDTO, hotel_i
 		return nil, errors.New("Failed to create room: incorrect price format")
 	}
 
-	room := mr.Room{
+	room := rm.Room{
 		Name:      toCreate.Name,
 		Price:     *priceBigRat,
 		HotelID:   hotel_id,

@@ -2,10 +2,15 @@ package service
 
 import (
 	"errors"
+	am "hotel_service/internal/amenity/model"
 	ar "hotel_service/internal/amenity/repository"
+	hm "hotel_service/internal/hotel/model"
 	hr "hotel_service/internal/hotel/repository"
+	rm "hotel_service/internal/room/model"
 	rr "hotel_service/internal/room/repository"
 	"hotel_service/internal/server/dto"
+	"math/big"
+	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -95,11 +100,134 @@ func (s *HotelServiceImpl) GetAll() ([]*dto.HotelResponseDTO, error) {
 	return hotelDTOs, nil
 }
 
-func (s *HotelServiceImpl) CreateHotel(hotel *dto.HotelCreateRequestDTO) (*dto.HotelResponseDTO, error) {
+func (s *HotelServiceImpl) CreateHotel(toCreate *dto.HotelCreateRequestDTO) (*dto.HotelShortResponseDTO, error) {
+	// Это ассимптотический цирк с конями
+	tx, err := s.hotelRepository.Begin()
+	if err != nil {
+		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Failed to create hotel")
 
+		return nil, errors.New("Failed to create hotel")
+	}
+
+	defer func() {
+		if err != nil {
+			s.hotelRepository.Rollback(tx)
+		} else {
+			logrus.WithTime(time.Now()).Info("Hotel creation complete")
+			s.hotelRepository.Commit(tx)
+		}
+	}()
+
+	hotel := &hm.Hotel{
+		Name: toCreate.Name,
+		Adress: toCreate.Adress,
+		PhoneNumber: toCreate.PhoneNumber,
+		Rooms: make([]*rm.Room, 0),
+	}
+
+	if err := s.hotelRepository.AddHotel(tx, hotel); err != nil {
+		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Failed to create hotel")
+
+		return nil, errors.New("Failed to create hotel")
+	}
+
+	if len(toCreate.Rooms) == 0 {
+		return &dto.HotelShortResponseDTO {
+			ID: hotel.ID,
+			Name: hotel.Name,
+			Adress: hotel.Adress,
+			PhoneNumber: hotel.PhoneNumber,
+		}, nil
+	}
+
+	amenityCache := make(map[string]*am.Amenity)
+
+	for _, roomCreateDTO := range toCreate.Rooms {
+
+		priceBigRat := new(big.Rat)
+		if _, ok := priceBigRat.SetString(roomCreateDTO.Price); !ok {
+			logrus.WithTime(time.Now()).WithFields(logrus.Fields{
+				"error": err.Error(),
+			}).Error("Failed to create room: incorrect price format")
+
+			return nil, errors.New("Failed to create room - incorrect price format: " + roomCreateDTO.Price)
+		}
+
+		room := &rm.Room{
+			Name:      roomCreateDTO.Name,
+			Price:     *priceBigRat,
+			HotelID:   hotel.ID,
+			Amenities: make([]*am.Amenity, 0),
+		}
+
+		dupes, ok := checkUnique(roomCreateDTO.Amenities)
+
+		if !ok {
+			logrus.WithTime(time.Now()).WithFields(logrus.Fields{
+				"dupes": dupes,
+			}).Error("Duplicate amenities")
+
+			return nil, errors.New("Duplicate amenities: " + strings.Join(dupes, ", ") + " at " + roomCreateDTO.Name)
+		}
+
+		for _, amName := range roomCreateDTO.Amenities {
+
+			if existing, found := amenityCache[amName]; found {
+				room.Amenities = append(room.Amenities, existing)
+				continue
+			}
+
+			newAmenity := &am.Amenity{
+					Name:    amName,
+					HotelID: hotel.ID,
+			}
+			
+			if err := s.amenityRepository.AddAmenity(tx, newAmenity); err != nil {
+				logrus.WithTime(time.Now()).WithFields(logrus.Fields{
+					"error": err.Error(),
+				}).Error("Failed to create hotel: to create amenity " + amName)
+
+				return nil, errors.New("Failed to create hotel: to create amenity " + amName)
+			}
+
+			room.Amenities = append(room.Amenities, newAmenity)
+			amenityCache[amName] = newAmenity
+		}
+
+		if err := s.roomRepository.AddRoom(tx, room); err != nil {
+			logrus.WithTime(time.Now()).WithFields(logrus.Fields{
+				"error": err.Error(),
+			}).Error("Failed to create hotel: creating room " + roomCreateDTO.Name)
+
+			return nil, errors.New("Failed to create hotel: creating room " + roomCreateDTO.Name)
+		}
+
+		hotel.Rooms = append(hotel.Rooms, room)
+	}
+
+	if err := s.hotelRepository.UpdateHotel(tx, hotel); err != nil {
+		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Failed to create hotel with rooms")
+
+		return nil, errors.New("Failed to create hotel with rooms")
+	}
+	
+	dto := &dto.HotelShortResponseDTO{
+		ID: hotel.ID,
+		Name: hotel.Name,
+		Adress: hotel.Adress,
+		PhoneNumber: hotel.PhoneNumber,
+	}
+
+	return dto, nil
 }
 
-func (s *HotelServiceImpl) UpdateHotel(id int64, hotel *dto.HotelCreateRequestDTO) (*dto.HotelResponseDTO, error) {
+func (s *HotelServiceImpl) UpdateHotel(id int64, hotel *dto.HotelCreateRequestDTO) (*dto.HotelShortResponseDTO, error) {
 	// Здесь упрощу логику - не буду обновлять трёхмерную развёртку, только сам отель
 }
 

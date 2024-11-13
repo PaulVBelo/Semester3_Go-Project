@@ -13,7 +13,7 @@ type Hotel struct {
 	Adress		string			`gorm:"column:hotel_adress;uniqueIndex:idx_name_adress;size:256;not_null"`
 	PhoneNumber	string			`gorm:"column:phone_number;size:32;not_null"`
 
-	Rooms		[]model.Room	`gorm:"foreignKey:HotelID"`
+	Rooms		[]*model.Room	`gorm:"foreignKey:HotelID"`
 }
 
 func(h *Hotel) BeforeSave(tx *gorm.DB) (err error) {
