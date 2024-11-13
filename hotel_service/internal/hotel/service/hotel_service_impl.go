@@ -31,20 +31,68 @@ func (s *HotelServiceImpl) GetByID(id int64) (*dto.HotelResponseDTO, error) {
 		return nil, errors.New("Hotel not found")
 	}
 
-	// Transfor rooms to dtos
+	var roomDTOs []dto.RoomResponseDTO
+	for _, room := range hotel.Rooms {
+		roomDTO := dto.RoomResponseDTO{
+			ID: room.ID,
+			Name: room.Name,
+			Price: room.Price.String(),
+			Amenities: make([]string, len(room.Amenities)),
+		}
+
+		for i, amenity := range room.Amenities {
+			roomDTO.Amenities[i] = amenity.Name
+		}
+
+		roomDTOs = append(roomDTOs, roomDTO)
+	}
 
 	dto := &dto.HotelResponseDTO {
 		ID: hotel.ID,
 		Name: hotel.Name,
 		Adress: hotel.Adress,
 		PhoneNumber: hotel.PhoneNumber,
+		Rooms: roomDTOs,
 	}
 
 	return dto, nil
 }
 
-func (s *HotelServiceImpl) GetAll(id int64) (*dto.HotelResponseDTO, error) {
+func (s *HotelServiceImpl) GetAll() ([]*dto.HotelResponseDTO, error) {
+	hotels, err := s.hotelRepository.GetAll()
+	if err != nil {
+		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Failed to retrieve hotels")
 
+		return nil, errors.New("Failed to retrieve hotels")
+	}
+
+	hotelDTOs := make([]*dto.HotelResponseDTO, len(hotels))
+	for i, hotel := range hotels {
+		roomDTOs := make([]dto.RoomResponseDTO, len(hotel.Rooms))
+		for j, room := range hotel.Rooms {
+			roomDTOs[j] = dto.RoomResponseDTO{
+				ID: room.ID,
+				Name: room.Name,
+				Price: room.Price.String(),
+				Amenities: make([]string, len(room.Amenities)),
+			}
+			for k, amenity := range room.Amenities {
+				roomDTOs[j].Amenities[k] = amenity.Name
+			}
+		}
+
+		hotelDTOs[i] = &dto.HotelResponseDTO{
+			ID: hotel.ID,
+			Name: hotel.Name,
+			Adress: hotel.Adress,
+			PhoneNumber: hotel.PhoneNumber,
+			Rooms: roomDTOs,
+		}
+	}
+	
+	return hotelDTOs, nil
 }
 
 func (s *HotelServiceImpl) CreateHotel(hotel *dto.HotelCreateRequestDTO) (*dto.HotelResponseDTO, error) {
