@@ -9,11 +9,13 @@ import (
 	rm "hotel_service/internal/room/model"
 	rr "hotel_service/internal/room/repository"
 	"hotel_service/internal/server/dto"
+	se "hotel_service/internal/server/errors"
 	"math/big"
 	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 type HotelServiceImpl struct {
@@ -31,9 +33,12 @@ func (s *HotelServiceImpl) GetByID(id int64) (*dto.HotelResponseDTO, error) {
 	if err != nil {
 		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
 			"error": err.Error(),
-		}).Error("Hotel not found")
+		}).Error("Unable to retrieve hotel")
+		if (errors.Is(err, gorm.ErrRecordNotFound)) {
+			return nil, &se.NotFoundError{"Hotel not found"}
+		}
 
-		return nil, errors.New("Hotel not found")
+		return nil, errors.New("Failed to retrieve hotel")
 	}
 
 	var roomDTOs []*dto.RoomResponseDTO
@@ -69,6 +74,9 @@ func (s *HotelServiceImpl) GetAll() ([]*dto.HotelResponseDTO, error) {
 		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Failed to retrieve hotels")
+		if (errors.Is(err, gorm.ErrRecordNotFound)) {
+			return nil, &se.NotFoundError{"No hotels found"}
+		}
 
 		return nil, errors.New("Failed to retrieve hotels")
 	}
@@ -108,7 +116,7 @@ func (s *HotelServiceImpl) CreateHotel(toCreate *dto.HotelCreateRequestDTO) (*dt
 			"error": err.Error(),
 		}).Error("Failed to create hotel")
 
-		return nil, errors.New("Failed to create hotel")
+		return nil, &se.InternalServerError{"Failed to create hotel"}
 	}
 
 	defer func() {
@@ -132,7 +140,11 @@ func (s *HotelServiceImpl) CreateHotel(toCreate *dto.HotelCreateRequestDTO) (*dt
 			"error": err.Error(),
 		}).Error("Failed to create hotel")
 
-		return nil, errors.New("Failed to create hotel")
+		if (errors.As(err, &se.BadRequestError{}) || errors.Is(err, gorm.ErrCheckConstraintViolated)) {
+			return nil, err
+		}
+		
+		return nil, &se.InternalServerError{"Failed to create hotel"}
 	}
 
 	if len(toCreate.Rooms) == 0 {
@@ -154,7 +166,7 @@ func (s *HotelServiceImpl) CreateHotel(toCreate *dto.HotelCreateRequestDTO) (*dt
 				"error": err.Error(),
 			}).Error("Failed to create room: incorrect price format")
 
-			return nil, errors.New("Failed to create room - incorrect price format: " + roomCreateDTO.Price)
+			return nil, &se.BadRequestError{"Failed to create room - incorrect price format: " + roomCreateDTO.Price}
 		}
 
 		room := &rm.Room{
@@ -171,7 +183,7 @@ func (s *HotelServiceImpl) CreateHotel(toCreate *dto.HotelCreateRequestDTO) (*dt
 				"dupes": dupes,
 			}).Error("Duplicate amenities")
 
-			return nil, errors.New("Duplicate amenities: " + strings.Join(dupes, ", ") + " at " + roomCreateDTO.Name)
+			return nil, &se.BadRequestError{"Duplicate amenities: " + strings.Join(dupes, ", ") + " at " + roomCreateDTO.Name}
 		}
 
 		for _, amName := range roomCreateDTO.Amenities {
@@ -191,7 +203,7 @@ func (s *HotelServiceImpl) CreateHotel(toCreate *dto.HotelCreateRequestDTO) (*dt
 					"error": err.Error(),
 				}).Error("Failed to create hotel: to create amenity " + amName)
 
-				return nil, errors.New("Failed to create hotel: to create amenity " + amName)
+				return nil, &se.InternalServerError{"Failed to create hotel: to create amenity " + amName}
 			}
 
 			room.Amenities = append(room.Amenities, newAmenity)
@@ -203,7 +215,11 @@ func (s *HotelServiceImpl) CreateHotel(toCreate *dto.HotelCreateRequestDTO) (*dt
 				"error": err.Error(),
 			}).Error("Failed to create hotel: creating room " + roomCreateDTO.Name)
 
-			return nil, errors.New("Failed to create hotel: creating room " + roomCreateDTO.Name)
+			if (errors.As(err, &se.BadRequestError{}) || errors.Is(err, gorm.ErrCheckConstraintViolated)) {
+				return nil, err
+			}
+
+			return nil, &se.InternalServerError{"Failed to create hotel: creating room " + roomCreateDTO.Name}
 		}
 
 		hotel.Rooms = append(hotel.Rooms, room)
@@ -214,7 +230,7 @@ func (s *HotelServiceImpl) CreateHotel(toCreate *dto.HotelCreateRequestDTO) (*dt
 			"error": err.Error(),
 		}).Error("Failed to create hotel with rooms")
 
-		return nil, errors.New("Failed to create hotel with rooms")
+		return nil, &se.InternalServerError{"Failed to create hotel with rooms"}
 	}
 	
 	dto := &dto.HotelShortResponseDTO{
@@ -235,7 +251,7 @@ func (s *HotelServiceImpl) UpdateHotel(id int64, toUpdate *dto.HotelUpdateReques
 			"error": err.Error(),
 		}).Error("Failed to update hotel")
 
-		return nil, errors.New("Failed to update hotel")
+		return nil, &se.InternalServerError{"Failed to update hotel"}
 	}
 
 	defer func() {
@@ -251,9 +267,12 @@ func (s *HotelServiceImpl) UpdateHotel(id int64, toUpdate *dto.HotelUpdateReques
 	if err != nil {
 		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
 			"error": err.Error(),
-		}).Error("Hotel not found")
+		}).Error("Unable to retrieve hotel")
+		if (errors.Is(err, gorm.ErrRecordNotFound)) {
+			return nil, &se.NotFoundError{"Hotel not found"}
+		}
 
-		return nil, errors.New("Hotel not found")
+		return nil, &se.InternalServerError{"Hotel not found"}
 	}
 
 	if (toUpdate.Name != nil) {
@@ -272,8 +291,11 @@ func (s *HotelServiceImpl) UpdateHotel(id int64, toUpdate *dto.HotelUpdateReques
 		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Failed to update hotel")
+		if (errors.As(err, &se.BadRequestError{}) || errors.Is(err, gorm.ErrCheckConstraintViolated)) {
+			return nil, err
+		}
 
-		return nil, errors.New("Failed to update hotel")
+		return nil, &se.InternalServerError{"Failed to update hotel"}
 	}
 
 	dto := &dto.HotelShortResponseDTO{

@@ -133,10 +133,10 @@ func (s *RoomServiceImpl) CreateRoom(toCreate *dto.RoomCreateRequestDTO, hotel_i
 		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Failed to create room")
-		if (errors.As(err, &se.BadRequestError{})) {
+
+		if (errors.As(err, &se.BadRequestError{}) || errors.Is(err, gorm.ErrCheckConstraintViolated)) {
 			return nil, err
 		}
-		
 		return nil, &se.InternalServerError{"Failed to create room"}
 	}
 
@@ -236,6 +236,10 @@ func (s *RoomServiceImpl) UpdateRoom(toUpdate *dto.RoomUpdateRequestDTO, room_id
 		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Failed to update room")
+
+		if (errors.As(err, &se.BadRequestError{}) || errors.Is(err, gorm.ErrCheckConstraintViolated)) {
+			return nil, err
+		}
 		return nil, &se.InternalServerError{Message: "Failed to update room"}
 	}
 
