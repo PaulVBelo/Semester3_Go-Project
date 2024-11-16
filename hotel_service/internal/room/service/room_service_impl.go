@@ -7,6 +7,7 @@ import (
 	rm "hotel_service/internal/room/model"
 	rr "hotel_service/internal/room/repository"
 	"hotel_service/internal/server/dto"
+	se "hotel_service/internal/server/errors"
 	"math/big"
 	"strings"
 	"time"
@@ -29,9 +30,12 @@ func (s *RoomServiceImpl) GetByID(id int64) (*dto.RoomResponseDTO, error) {
 	if err != nil {
 		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
 			"error": err.Error(),
-		}).Error("Room not found")
-
-		return nil, errors.New("Room not found")
+		}).Error("Failed to retrieve room from database")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, &se.NotFoundError{"Room not found"}
+		}
+		return nil, &se.InternalServerError{"Failed to retrieve room"}
+		
 	}
 
 	f := new(big.Float).SetRat(&room.Price)
@@ -59,7 +63,7 @@ func (s *RoomServiceImpl) CreateRoom(toCreate *dto.RoomCreateRequestDTO, hotel_i
 			"error": err.Error(),
 		}).Error("Failed to create room")
 
-		return nil, errors.New("Failed to create room")
+		return nil, &se.InternalServerError{"Failed to create room"}
 	}
 
 	defer func() {
@@ -77,7 +81,7 @@ func (s *RoomServiceImpl) CreateRoom(toCreate *dto.RoomCreateRequestDTO, hotel_i
 			"error": err.Error(),
 		}).Error("Failed to create room: incorrect price format")
 
-		return nil, errors.New("Failed to create room: incorrect price format")
+		return nil, &se.BadRequestError{"Incorrect price format"}
 	}
 
 	room := rm.Room{
@@ -94,7 +98,7 @@ func (s *RoomServiceImpl) CreateRoom(toCreate *dto.RoomCreateRequestDTO, hotel_i
 			"dupes": dupes,
 		}).Error("Duplicate amenity")
 
-		return nil, errors.New("Duplicate amenities: " + strings.Join(dupes, ", "))
+		return nil, &se.BadRequestError{"Duplicate amenities: " + strings.Join(dupes, ", ")}
 	}
 
 	for _, amName := range toCreate.Amenities {
@@ -106,7 +110,7 @@ func (s *RoomServiceImpl) CreateRoom(toCreate *dto.RoomCreateRequestDTO, hotel_i
 					HotelID: hotel_id,
 				}
 				if err := s.amenityRepository.AddAmenity(tx, newAmenity); err != nil {
-					return nil, err
+					return nil,  &se.InternalServerError{"Failed to create room"}
 				}
 				room.Amenities = append(room.Amenities, newAmenity)
 
@@ -117,7 +121,7 @@ func (s *RoomServiceImpl) CreateRoom(toCreate *dto.RoomCreateRequestDTO, hotel_i
 				continue
 			}
 
-			return nil, errors.New("Failed to create room")
+			return nil, &se.InternalServerError{"Failed to create room"}
 		}
 
 		room.Amenities = append(room.Amenities, existing)
@@ -129,8 +133,11 @@ func (s *RoomServiceImpl) CreateRoom(toCreate *dto.RoomCreateRequestDTO, hotel_i
 		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Failed to create room")
-
-		return nil, errors.New("Failed to create room")
+		if (errors.As(err, &se.BadRequestError{})) {
+			return nil, err
+		}
+		
+		return nil, &se.InternalServerError{"Failed to create room"}
 	}
 
 	dto := &dto.RoomResponseDTO{
@@ -151,7 +158,7 @@ func (s *RoomServiceImpl) UpdateRoom(toUpdate *dto.RoomUpdateRequestDTO, room_id
 			"error": err.Error(),
 		}).Error("Failed to update room")
 
-		return nil, errors.New("Failed to update room")
+		return nil, &se.InternalServerError{Message: "Failed to update room"}
 	}
 
 	defer func() {
@@ -168,7 +175,7 @@ func (s *RoomServiceImpl) UpdateRoom(toUpdate *dto.RoomUpdateRequestDTO, room_id
 		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Failed to update room: room not found")
-		return nil, errors.New("Failed to update room: room not found")
+		return nil, &se.NotFoundError{"Room not found"}
 	}
 
 	if (toUpdate.Name != nil) {
@@ -181,7 +188,7 @@ func (s *RoomServiceImpl) UpdateRoom(toUpdate *dto.RoomUpdateRequestDTO, room_id
 				"error": err.Error(),
 			}).Error("Failed to update room: incorrect price format")
 
-			return nil, errors.New("Failed to update room: incorrect price format")
+			return nil, &se.BadRequestError{"Incorrect price format"}
 		}
 	}
 
@@ -193,7 +200,7 @@ func (s *RoomServiceImpl) UpdateRoom(toUpdate *dto.RoomUpdateRequestDTO, room_id
 				"dupes": dupes,
 			}).Error("Duplicate amenity")
 
-			return nil, errors.New("Duplicate amenities: " + strings.Join(dupes, ", "))
+			return nil, &se.BadRequestError{"Duplicate amenities: " + strings.Join(dupes, ", ")}
 		}
 		room.Amenities = make([]*am.Amenity, 0)
 
@@ -206,7 +213,7 @@ func (s *RoomServiceImpl) UpdateRoom(toUpdate *dto.RoomUpdateRequestDTO, room_id
 						HotelID: room.HotelID,
 					}
 					if err := s.amenityRepository.AddAmenity(tx, newAmenity); err != nil {
-						return nil, err
+						return nil, &se.InternalServerError{Message: "Failed to update room"}
 					}
 					room.Amenities = append(room.Amenities, newAmenity)
 	
@@ -217,7 +224,7 @@ func (s *RoomServiceImpl) UpdateRoom(toUpdate *dto.RoomUpdateRequestDTO, room_id
 					continue
 				}
 	
-				return nil, errors.New("Failed to update room")
+				return nil, &se.InternalServerError{Message: "Failed to update room"}
 			}
 	
 			room.Amenities = append(room.Amenities, existing)
@@ -229,7 +236,7 @@ func (s *RoomServiceImpl) UpdateRoom(toUpdate *dto.RoomUpdateRequestDTO, room_id
 		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Failed to update room")
-		return nil, errors.New("Failed to update room")
+		return nil, &se.InternalServerError{Message: "Failed to update room"}
 	}
 
 	dto := &dto.RoomResponseDTO{

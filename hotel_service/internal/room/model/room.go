@@ -1,9 +1,10 @@
 package model
 
 import (
-	"errors"
 	"hotel_service/internal/amenity/model"
+	se"hotel_service/internal/server/errors"
 	"math/big"
+
 	"gorm.io/gorm"
 )
 
@@ -18,7 +19,7 @@ type Room struct {
 
 func(r *Room) BeforeSave(tx *gorm.DB) (err error) {
 	if r.Price.Cmp(new(big.Rat)) != 1 {
-		return errors.New("negative price not allowed")
+		return &se.BadRequestError{"Negative price not allowed"}
 	}
 	return nil
 }
