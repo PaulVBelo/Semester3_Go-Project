@@ -4,6 +4,7 @@ import (
 	serviceH "hotel_service/internal/hotel/service"
 	serviceR "hotel_service/internal/room/service"
 	"hotel_service/internal/server/dto"
+	se "hotel_service/internal/server/errors"
 	"net/http"
 	"strconv"
 	"time"
@@ -42,7 +43,13 @@ func (s *Server) routes() {
 func (s *Server) getAll(c *gin.Context) {
 	hotels, err := s.hotelService.GetAll()
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Not retrieved"})
+		switch err.(type) {
+			case *se.NotFoundError:
+				c.JSON(http.StatusNotFound, gin.H{"error": "No hotels found"})
+			default:
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve hotelS", 
+				"details" : "An unexpected error occurred"})
+		}
 		return
 	}
 	c.JSON(http.StatusOK, hotels)
@@ -57,8 +64,14 @@ func (s *Server) getHotelByID(c *gin.Context) {
 	}
 
 	hotel, err := s.hotelService.GetByID(id)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Hotel not found"})
+		if err != nil {
+			switch err.(type) {
+			case *se.NotFoundError:
+				c.JSON(http.StatusNotFound, gin.H{"error": "Hotel not found"})
+			default:
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve hotel", 
+				"details" : "An unexpected error occurred"})
+		}
 		return
 	}
 	c.JSON(http.StatusOK, hotel)
@@ -73,7 +86,18 @@ func (s *Server) createHotel(c *gin.Context) {
 
 	resp, err := s.hotelService.CreateHotel(&hotel)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create hotel", "details": err.Error()})
+		switch err.(type) {
+			case *se.BadRequestError:
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create hotel", "details": err.Error()})
+			case *se.NotFoundError:
+				c.JSON(http.StatusNotFound, gin.H{"error": "Failed to create hotel", "details": err.Error()})
+			case *se.InternalServerError:
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create hotel"})
+			default:
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create hotel", 
+				"details": "An unexpected error occurred"})
+		}
+		return
 	}
 
 	c.JSON(http.StatusCreated, resp)
@@ -95,10 +119,19 @@ func (s *Server) updateHotel(c *gin.Context) {
 
 	resp, err := s.hotelService.UpdateHotel(id, &hotel)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update hotel", "details": err.Error()})
+		switch err.(type) {
+			case *se.BadRequestError:
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to update hotel", "details": err.Error()})
+			case *se.InternalServerError:
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update hotel"})
+			default:
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update hotel", 
+				"details": "An unexpected error occurred"})
+		}
+		return
 	}
 
-	c.JSON(http.StatusCreated, resp)
+	c.JSON(http.StatusOK, resp)
 }
 
 func (s *Server) getRoomByID(c *gin.Context) {
@@ -120,7 +153,13 @@ func (s *Server) getRoomByID(c *gin.Context) {
 			"error": err.Error(),
 		}).Error("Failed to find room")
 
-		c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
+		switch err.(type) {
+			case *se.NotFoundError:
+				c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
+			default:
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve room", 
+				"details" : "An unexpected error occurred"})
+		}
 		return
 	}
 
@@ -158,7 +197,18 @@ func (s *Server) createRoom(c *gin.Context) {
 			"error": err.Error(),
 		}).Error("Failed to create room")
 
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create room", "details": err.Error()})
+		switch err.(type) {
+			case *se.BadRequestError:
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create room", "details": err.Error()})
+			case *se.NotFoundError:
+				c.JSON(http.StatusNotFound, gin.H{"error": "Failed to create room", "details": err.Error()})
+			case *se.InternalServerError:
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create room"})
+			default:
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create room", 
+				"details": "An unexpected error occurred"})
+		}
+		return
 	}
 
 	logrus.WithTime(time.Now()).Info("Room successfully created")
@@ -194,7 +244,19 @@ func (s *Server) updateRoom(c *gin.Context) {
 		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Failed to update room")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update room", "details": err.Error()})
+
+		switch err.(type) {
+			case *se.BadRequestError:
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to update room", "details": err.Error()})
+			case *se.NotFoundError:
+				c.JSON(http.StatusNotFound, gin.H{"error": "Failed to update room", "details": err.Error()})
+			case *se.InternalServerError:
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update room"})
+			default:
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update room", 
+				"details": "An unexpected error occurred"})
+		}
+		return
 	}
 
 	logrus.WithTime(time.Now()).Info("Room successfully updated")
