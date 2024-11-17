@@ -40,6 +40,11 @@ func (s *Server) routes() {
 	s.router.PUT("api/rooms/:id", s.updateRoom)
 }
 
+func (s *Server) Run(port string) error {
+	return s.router.Run(":" + port)
+}
+
+
 func (s *Server) getAll(c *gin.Context) {
 	hotels, err := s.hotelService.GetAll()
 	if err != nil {

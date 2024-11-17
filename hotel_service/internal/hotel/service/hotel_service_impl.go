@@ -164,7 +164,7 @@ func (s *HotelServiceImpl) CreateHotel(toCreate *dto.HotelCreateRequestDTO) (*dt
 
 	for _, roomCreateDTO := range toCreate.Rooms {
 
-		priceBigRat := new(big.Rat)
+		priceBigRat := rm.BigRat{new(big.Rat)}
 		if _, ok := priceBigRat.SetString(roomCreateDTO.Price); !ok {
 			logrus.WithTime(time.Now()).WithFields(logrus.Fields{
 				"error": err.Error(),
@@ -175,7 +175,7 @@ func (s *HotelServiceImpl) CreateHotel(toCreate *dto.HotelCreateRequestDTO) (*dt
 
 		room := &rm.Room{
 			Name:      roomCreateDTO.Name,
-			Price:     *priceBigRat,
+			Price:     priceBigRat,
 			HotelID:   hotel.ID,
 			Amenities: make([]*am.Amenity, 0),
 		}

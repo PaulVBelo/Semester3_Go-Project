@@ -38,7 +38,7 @@ func (s *RoomServiceImpl) GetByID(id int64) (*dto.RoomResponseDTO, error) {
 		
 	}
 
-	f := new(big.Float).SetRat(&room.Price)
+	f := new(big.Float).SetRat(room.Price.Get())
 
 	ams := make([]string, len(room.Amenities))
 	for i, amenity := range room.Amenities {
@@ -74,8 +74,8 @@ func (s *RoomServiceImpl) CreateRoom(toCreate *dto.RoomCreateRequestDTO, hotel_i
 			s.roomRepository.Commit(tx)
 		}
 	}()
-
-	priceBigRat := new(big.Rat)
+	
+	priceBigRat := rm.BigRat{Rat: new(big.Rat)}
 	if _, ok := priceBigRat.SetString(toCreate.Price); !ok {
 		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
 			"error": err.Error(),
@@ -86,7 +86,7 @@ func (s *RoomServiceImpl) CreateRoom(toCreate *dto.RoomCreateRequestDTO, hotel_i
 
 	room := rm.Room{
 		Name:      toCreate.Name,
-		Price:     *priceBigRat,
+		Price:     priceBigRat,
 		HotelID:   hotel_id,
 		Amenities: make([]*am.Amenity, 0),
 	}
