@@ -140,8 +140,12 @@ func (s *HotelServiceImpl) CreateHotel(toCreate *dto.HotelCreateRequestDTO) (*dt
 			"error": err.Error(),
 		}).Error("Failed to create hotel")
 
-		if (errors.As(err, &se.BadRequestError{}) || errors.Is(err, gorm.ErrCheckConstraintViolated)) {
+		if (errors.As(err, &se.BadRequestError{})) {
 			return nil, err
+		}
+
+		if (errors.Is(err, gorm.ErrCheckConstraintViolated)) {
+			return nil, &se.BadRequestError{Message: "Bad request"}
 		}
 		
 		return nil, &se.InternalServerError{"Failed to create hotel"}
@@ -215,8 +219,12 @@ func (s *HotelServiceImpl) CreateHotel(toCreate *dto.HotelCreateRequestDTO) (*dt
 				"error": err.Error(),
 			}).Error("Failed to create hotel: creating room " + roomCreateDTO.Name)
 
-			if (errors.As(err, &se.BadRequestError{}) || errors.Is(err, gorm.ErrCheckConstraintViolated)) {
+			if (errors.As(err, &se.BadRequestError{})) {
 				return nil, err
+			}
+
+			if (errors.Is(err, gorm.ErrCheckConstraintViolated)) {
+				return nil, &se.BadRequestError{Message: "Bad request"}
 			}
 
 			return nil, &se.InternalServerError{"Failed to create hotel: creating room " + roomCreateDTO.Name}
@@ -291,8 +299,13 @@ func (s *HotelServiceImpl) UpdateHotel(id int64, toUpdate *dto.HotelUpdateReques
 		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Failed to update hotel")
-		if (errors.As(err, &se.BadRequestError{}) || errors.Is(err, gorm.ErrCheckConstraintViolated)) {
+
+		if (errors.As(err, &se.BadRequestError{})) {
 			return nil, err
+		}
+
+		if (errors.Is(err, gorm.ErrCheckConstraintViolated)) {
+			return nil, &se.BadRequestError{Message: "Bad request"}
 		}
 
 		return nil, &se.InternalServerError{"Failed to update hotel"}
