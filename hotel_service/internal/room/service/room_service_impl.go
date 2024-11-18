@@ -197,7 +197,7 @@ func (s *RoomServiceImpl) UpdateRoom(toUpdate *dto.RoomUpdateRequestDTO, room_id
 		}
 	}
 
-	if len(toUpdate.Amenities) > 0 {
+	if toUpdate.Amenities != nil {
 		dupes, ok := checkUnique(toUpdate.Amenities)
 
 		if !ok {
@@ -207,6 +207,8 @@ func (s *RoomServiceImpl) UpdateRoom(toUpdate *dto.RoomUpdateRequestDTO, room_id
 
 			return nil, &se.BadRequestError{"Duplicate amenities: " + strings.Join(dupes, ", ")}
 		}
+
+		s.amenityRepository.DeleteForRoom(tx, room.ID)
 		room.Amenities = make([]*am.Amenity, 0)
 
 		for _, amName := range toUpdate.Amenities {
@@ -253,11 +255,16 @@ func (s *RoomServiceImpl) UpdateRoom(toUpdate *dto.RoomUpdateRequestDTO, room_id
 		return nil, &se.InternalServerError{Message: "Failed to update room"}
 	}
 
+	ams := make([]string, len(room.Amenities))
+	for i, amenity := range room.Amenities {
+		ams[i] = amenity.Name
+	}
+
 	dto := &dto.RoomResponseDTO{
 		ID: room.ID,
 		Name: room.Name,
 		Price: room.Price.String(),
-		Amenities: toUpdate.Amenities,
+		Amenities: ams,
 	}
 
 	return dto, nil

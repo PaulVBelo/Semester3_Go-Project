@@ -43,3 +43,7 @@ func (r *AmenityRepositoryWithGorm) GetAmenityIfExists(hotel_id int64, name stri
 	}
 	return &amenity, nil
 }
+
+func (r *AmenityRepositoryWithGorm) DeleteForRoom(tx *gorm.DB, room_id int64) error {
+	return tx.Exec("DELETE FROM room_x_amenity WHERE room_id = ?", room_id).Error
+}

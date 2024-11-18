@@ -14,4 +14,6 @@ type AmenityRepository interface { // Этой штуке не нужно уме
 	GetAmenityById(id int64) (*model.Amenity, error)
 	GetAll() ([]model.Amenity, error)
 	GetAmenityIfExists(hotel_id int64, name string) (*model.Amenity, error)
+
+	DeleteForRoom(tx *gorm.DB, room_id int64) error
 }
