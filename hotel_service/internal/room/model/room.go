@@ -12,7 +12,7 @@ type Room struct {
   ID        int64                `gorm:"column:room_id;primaryKey"`
   Name      string               `gorm:"column:room_name;size:128;not null"`
   HotelID   int64                `gorm:"column:hotel_id;"`
-  Price     BigRat               `gorm:"column:price;not null"`
+  Price     BigRat               `gorm:"column:price;type:text;not null"`
   Amenities []*model.Amenity     `gorm:"many2many:room_x_amenity"`
 }
 
@@ -26,7 +26,7 @@ func (br *BigRat) SetString(s string) (*BigRat, bool) {
 }
 
 func (br *BigRat) String() string {
-  return br.Rat.String()
+  return br.Rat.FloatString(2);
 }
 
 func (br *BigRat) Get() *big.Rat {

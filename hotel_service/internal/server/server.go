@@ -35,7 +35,7 @@ func (s *Server) routes() {
 	s.router.GET("api/hotels/:id", s.getHotelByID)
 	s.router.POST("api/hotels", s.createHotel)
 	s.router.PUT("api/hotels/:id", s.updateHotel)
-	s.router.GET("/rooms/:id", s.getRoomByID)
+	s.router.GET("api/rooms/:id", s.getRoomByID)
 	s.router.POST("api/hotels/:id/room", s.createRoom)
 	s.router.PUT("api/rooms/:id", s.updateRoom)
 }

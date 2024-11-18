@@ -38,7 +38,7 @@ func (r *AmenityRepositoryWithGorm) GetAll() ([]model.Amenity, error) {
 
 func (r *AmenityRepositoryWithGorm) GetAmenityIfExists(hotel_id int64, name string) (*model.Amenity, error) {
 	var amenity model.Amenity
-	if err := r.db.Where("name = ? AND hotel_id = ?", hotel_id, name).First(&amenity).Error; err != nil {
+	if err := r.db.Where("amenity_name = ? AND hotel_id = ?", name, hotel_id).First(&amenity).Error; err != nil {
 		return nil, err
 	}
 	return &amenity, nil
