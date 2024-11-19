@@ -1,22 +1,48 @@
 package dto
 
-type RoomDTO struct {
-	ID 			int64
-	Name		string
-	HotelID 	int64
-	Price		string
-	Amenities	[]AmenityDTO	`json:"omitempty"`
+type RoomCreateRequestDTO struct {
+	Name      string   `json:"name"`
+	Price     string   `json:"price"`
+	Amenities []string `json:"amenities,omitempty"`
 }
 
-type AmenityDTO struct {
-	ID 			int64
-	Name		string
+type RoomUpdateRequestDTO struct {
+	Name      *string  `json:"name,omitempty"`
+	Price     *string  `json:"price,omitempty"`
+	Amenities []string `json:"amenities,omitempty"`
 }
 
-type HotelDTO struct {
-	ID			int64
-	Name		string
-	Adress		string
-	Rooms		[]RoomDTO
-	Amenities	[]AmenityDTO
+type HotelCreateRequestDTO struct {
+	Name   	string                 	`json:"name"`
+	Adress 	string                 	`json:"adress"`
+	PhoneNumber	string				`json:"phone_number"`
+	Rooms  	[]RoomCreateRequestDTO 	`json:"rooms,omitempty"`
+}
+
+type HotelUpdateRequestDTO struct {
+	Name   		*string                 	`json:"name"`
+	Adress 		*string                 	`json:"adress"`
+	PhoneNumber	*string						`json:"phone_number"`
+}
+
+type RoomResponseDTO struct {
+	ID        int64    `json:"id"`
+	Name      string   `json:"name"`
+	Price     string   `json:"price"`
+	Amenities []string `json:"amenities,omitempty"`
+}
+
+type HotelResponseDTO struct {
+	ID     int64             		`json:"id"`
+	Name   string            		`json:"name"`
+	Adress string            		`json:"adress"`
+	PhoneNumber	string				`json:"phone_number"`
+	Rooms  []*RoomResponseDTO 		`json:"rooms,omitempty"`
+}
+
+type HotelShortResponseDTO struct {
+	ID     int64             		`json:"id"`
+	Name   string            		`json:"name"`
+	Adress string            		`json:"adress"`
+	PhoneNumber	string				`json:"phone_number"`
 }
