@@ -26,7 +26,7 @@ func (br *BigRat) SetString(s string) (*BigRat, bool) {
 }
 
 func (br *BigRat) String() string {
-  return br.Rat.FloatString(2);
+  return br.Rat.FloatString(8);
 }
 
 func (br *BigRat) Get() *big.Rat {
