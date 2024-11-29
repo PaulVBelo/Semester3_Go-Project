@@ -34,7 +34,7 @@ func (s *HotelServiceImpl) GetByID(id int64) (*dto.HotelResponseDTO, error) {
 		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Unable to retrieve hotel")
-		if (errors.Is(err, gorm.ErrRecordNotFound)) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, &se.NotFoundError{"Hotel not found"}
 		}
 
@@ -44,9 +44,9 @@ func (s *HotelServiceImpl) GetByID(id int64) (*dto.HotelResponseDTO, error) {
 	var roomDTOs []*dto.RoomResponseDTO
 	for _, room := range hotel.Rooms {
 		roomDTO := &dto.RoomResponseDTO{
-			ID: room.ID,
-			Name: room.Name,
-			Price: room.Price.String(),
+			ID:        room.ID,
+			Name:      room.Name,
+			Price:     room.Price.String(),
 			Amenities: make([]string, len(room.Amenities)),
 		}
 
@@ -57,24 +57,24 @@ func (s *HotelServiceImpl) GetByID(id int64) (*dto.HotelResponseDTO, error) {
 		roomDTOs = append(roomDTOs, roomDTO)
 	}
 
-	dto := &dto.HotelResponseDTO {
-		ID: hotel.ID,
-		Name: hotel.Name,
-		Adress: hotel.Adress,
+	dto := &dto.HotelResponseDTO{
+		ID:          hotel.ID,
+		Name:        hotel.Name,
+		Adress:      hotel.Adress,
 		PhoneNumber: hotel.PhoneNumber,
-		Rooms: roomDTOs,
+		Rooms:       roomDTOs,
 	}
 
 	return dto, nil
 }
 
-func (s *HotelServiceImpl) GetExpendedRoomData(id int64) (*dto.FullRoomData, error) {
+func (s *HotelServiceImpl) GetExpandedRoomData(id int64) (*dto.FullRoomData, error) {
 	room, err := s.roomRepository.GetRoomById(id)
 	if err != nil {
-		 logrus.WithTime(time.Now()).WithFields(logrus.Fields{
+		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Unable to retrieve room")
-		if (errors.Is(err, gorm.ErrRecordNotFound)) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, &se.NotFoundError{"Room not found"}
 		}
 
@@ -84,27 +84,27 @@ func (s *HotelServiceImpl) GetExpendedRoomData(id int64) (*dto.FullRoomData, err
 	hotel, err := s.hotelRepository.GetHotelById(room.HotelID)
 	if err != nil {
 		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
-		   "error": err.Error(),
-	   }).Error("Unable to retrieve hotel")
-	   if (errors.Is(err, gorm.ErrRecordNotFound)) {
-		   return nil, &se.NotFoundError{"Hotel not found"}
-	   }
+			"error": err.Error(),
+		}).Error("Unable to retrieve hotel")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, &se.NotFoundError{"Hotel not found"}
+		}
 
-	   return nil, errors.New("Failed to retrieve hotel")
-   }
+		return nil, errors.New("Failed to retrieve hotel")
+	}
 
-   	responseDTO := dto.FullRoomData{
-		ID: hotel.ID,
-		Name: hotel.Name,
-		Adress: hotel.Adress,
+	responseDTO := dto.FullRoomData{
+		ID:          hotel.ID,
+		Name:        hotel.Name,
+		Adress:      hotel.Adress,
 		PhoneNumber: hotel.PhoneNumber,
-		RoomId: room.ID,
-		RoomName: room.Name,
-		Price: room.Price.String(),
-		Amenities: make([]string, len(room.Amenities)),
-   }
+		RoomId:      room.ID,
+		RoomName:    room.Name,
+		Price:       room.Price.String(),
+		Amenities:   make([]string, len(room.Amenities)),
+	}
 
-   	for i, amenity := range room.Amenities {
+	for i, amenity := range room.Amenities {
 		responseDTO.Amenities[i] = amenity.Name
 	}
 
@@ -117,7 +117,7 @@ func (s *HotelServiceImpl) GetAll() ([]*dto.HotelResponseDTO, error) {
 		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Failed to retrieve hotels")
-		if (errors.Is(err, gorm.ErrRecordNotFound)) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, &se.NotFoundError{"No hotels found"}
 		}
 
@@ -129,9 +129,9 @@ func (s *HotelServiceImpl) GetAll() ([]*dto.HotelResponseDTO, error) {
 		roomDTOs := make([]*dto.RoomResponseDTO, len(hotel.Rooms))
 		for j, room := range hotel.Rooms {
 			roomDTOs[j] = &dto.RoomResponseDTO{
-				ID: room.ID,
-				Name: room.Name,
-				Price: room.Price.String(),
+				ID:        room.ID,
+				Name:      room.Name,
+				Price:     room.Price.String(),
 				Amenities: make([]string, len(room.Amenities)),
 			}
 			for k, amenity := range room.Amenities {
@@ -140,14 +140,14 @@ func (s *HotelServiceImpl) GetAll() ([]*dto.HotelResponseDTO, error) {
 		}
 
 		hotelDTOs[i] = &dto.HotelResponseDTO{
-			ID: hotel.ID,
-			Name: hotel.Name,
-			Adress: hotel.Adress,
+			ID:          hotel.ID,
+			Name:        hotel.Name,
+			Adress:      hotel.Adress,
 			PhoneNumber: hotel.PhoneNumber,
-			Rooms: roomDTOs,
+			Rooms:       roomDTOs,
 		}
 	}
-	
+
 	return hotelDTOs, nil
 }
 
@@ -172,10 +172,10 @@ func (s *HotelServiceImpl) CreateHotel(toCreate *dto.HotelCreateRequestDTO) (*dt
 	}()
 
 	hotel := &hm.Hotel{
-		Name: toCreate.Name,
-		Adress: toCreate.Adress,
+		Name:        toCreate.Name,
+		Adress:      toCreate.Adress,
 		PhoneNumber: toCreate.PhoneNumber,
-		Rooms: make([]*rm.Room, 0),
+		Rooms:       make([]*rm.Room, 0),
 	}
 
 	if err := s.hotelRepository.AddHotel(tx, hotel); err != nil {
@@ -187,18 +187,18 @@ func (s *HotelServiceImpl) CreateHotel(toCreate *dto.HotelCreateRequestDTO) (*dt
 			return nil, err
 		}
 
-		if (errors.Is(err, gorm.ErrCheckConstraintViolated)) {
+		if errors.Is(err, gorm.ErrCheckConstraintViolated) {
 			return nil, &se.BadRequestError{Message: "Bad request"}
 		}
-		
+
 		return nil, &se.InternalServerError{"Failed to create hotel"}
 	}
 
 	if len(toCreate.Rooms) == 0 {
-		return &dto.HotelShortResponseDTO {
-			ID: hotel.ID,
-			Name: hotel.Name,
-			Adress: hotel.Adress,
+		return &dto.HotelShortResponseDTO{
+			ID:          hotel.ID,
+			Name:        hotel.Name,
+			Adress:      hotel.Adress,
 			PhoneNumber: hotel.PhoneNumber,
 		}, nil
 	}
@@ -241,10 +241,10 @@ func (s *HotelServiceImpl) CreateHotel(toCreate *dto.HotelCreateRequestDTO) (*dt
 			}
 
 			newAmenity := &am.Amenity{
-					Name:    amName,
-					HotelID: hotel.ID,
+				Name:    amName,
+				HotelID: hotel.ID,
 			}
-			
+
 			if err := s.amenityRepository.AddAmenity(tx, newAmenity); err != nil {
 				logrus.WithTime(time.Now()).WithFields(logrus.Fields{
 					"error": err.Error(),
@@ -266,7 +266,7 @@ func (s *HotelServiceImpl) CreateHotel(toCreate *dto.HotelCreateRequestDTO) (*dt
 				return nil, err
 			}
 
-			if (errors.Is(err, gorm.ErrCheckConstraintViolated)) {
+			if errors.Is(err, gorm.ErrCheckConstraintViolated) {
 				return nil, &se.BadRequestError{Message: "Bad request"}
 			}
 
@@ -283,11 +283,11 @@ func (s *HotelServiceImpl) CreateHotel(toCreate *dto.HotelCreateRequestDTO) (*dt
 
 		return nil, &se.InternalServerError{"Failed to create hotel with rooms"}
 	}
-	
+
 	dto := &dto.HotelShortResponseDTO{
-		ID: hotel.ID,
-		Name: hotel.Name,
-		Adress: hotel.Adress,
+		ID:          hotel.ID,
+		Name:        hotel.Name,
+		Adress:      hotel.Adress,
 		PhoneNumber: hotel.PhoneNumber,
 	}
 
@@ -319,22 +319,22 @@ func (s *HotelServiceImpl) UpdateHotel(id int64, toUpdate *dto.HotelUpdateReques
 		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Unable to retrieve hotel")
-		if (errors.Is(err, gorm.ErrRecordNotFound)) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, &se.NotFoundError{"Hotel not found"}
 		}
 
 		return nil, &se.InternalServerError{"Hotel not found"}
 	}
 
-	if (toUpdate.Name != nil) {
+	if toUpdate.Name != nil {
 		hotel.Name = *toUpdate.Name
 	}
 
-	if (toUpdate.Adress != nil) {
+	if toUpdate.Adress != nil {
 		hotel.Adress = *toUpdate.Adress
 	}
 
-	if (toUpdate.PhoneNumber != nil) {
+	if toUpdate.PhoneNumber != nil {
 		hotel.PhoneNumber = *toUpdate.PhoneNumber
 	}
 
@@ -347,7 +347,7 @@ func (s *HotelServiceImpl) UpdateHotel(id int64, toUpdate *dto.HotelUpdateReques
 			return nil, err
 		}
 
-		if (errors.Is(err, gorm.ErrCheckConstraintViolated)) {
+		if errors.Is(err, gorm.ErrCheckConstraintViolated) {
 			return nil, &se.BadRequestError{Message: "Bad request"}
 		}
 
@@ -355,9 +355,9 @@ func (s *HotelServiceImpl) UpdateHotel(id int64, toUpdate *dto.HotelUpdateReques
 	}
 
 	dto := &dto.HotelShortResponseDTO{
-		ID: hotel.ID,
-		Name: hotel.Name,
-		Adress: hotel.Adress,
+		ID:          hotel.ID,
+		Name:        hotel.Name,
+		Adress:      hotel.Adress,
 		PhoneNumber: hotel.PhoneNumber,
 	}
 

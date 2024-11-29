@@ -45,16 +45,15 @@ func (s *Server) Run(port string) error {
 	return s.router.Run(":" + port)
 }
 
-
 func (s *Server) getAll(c *gin.Context) {
 	hotels, err := s.hotelService.GetAll()
 	if err != nil {
 		switch err.(type) {
-			case *se.NotFoundError:
-				c.JSON(http.StatusNotFound, gin.H{"error": "No hotels found"})
-			default:
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve hotelS", 
-				"details" : "An unexpected error occurred"})
+		case *se.NotFoundError:
+			c.JSON(http.StatusNotFound, gin.H{"error": "No hotels found"})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve hotelS",
+				"details": "An unexpected error occurred"})
 		}
 		return
 	}
@@ -70,13 +69,13 @@ func (s *Server) getHotelByID(c *gin.Context) {
 	}
 
 	hotel, err := s.hotelService.GetByID(id)
-		if err != nil {
-			switch err.(type) {
-			case *se.NotFoundError:
-				c.JSON(http.StatusNotFound, gin.H{"error": "Hotel not found"})
-			default:
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve hotel", 
-				"details" : "An unexpected error occurred"})
+	if err != nil {
+		switch err.(type) {
+		case *se.NotFoundError:
+			c.JSON(http.StatusNotFound, gin.H{"error": "Hotel not found"})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve hotel",
+				"details": "An unexpected error occurred"})
 		}
 		return
 	}
@@ -93,14 +92,14 @@ func (s *Server) createHotel(c *gin.Context) {
 	resp, err := s.hotelService.CreateHotel(&hotel)
 	if err != nil {
 		switch err.(type) {
-			case *se.BadRequestError:
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create hotel", "details": err.Error()})
-			case *se.NotFoundError:
-				c.JSON(http.StatusNotFound, gin.H{"error": "Failed to create hotel", "details": err.Error()})
-			case *se.InternalServerError:
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create hotel"})
-			default:
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create hotel", 
+		case *se.BadRequestError:
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create hotel", "details": err.Error()})
+		case *se.NotFoundError:
+			c.JSON(http.StatusNotFound, gin.H{"error": "Failed to create hotel", "details": err.Error()})
+		case *se.InternalServerError:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create hotel"})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create hotel",
 				"details": "An unexpected error occurred"})
 		}
 		return
@@ -126,12 +125,12 @@ func (s *Server) updateHotel(c *gin.Context) {
 	resp, err := s.hotelService.UpdateHotel(id, &hotel)
 	if err != nil {
 		switch err.(type) {
-			case *se.BadRequestError:
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to update hotel", "details": err.Error()})
-			case *se.InternalServerError:
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update hotel"})
-			default:
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update hotel", 
+		case *se.BadRequestError:
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to update hotel", "details": err.Error()})
+		case *se.InternalServerError:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update hotel"})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update hotel",
 				"details": "An unexpected error occurred"})
 		}
 		return
@@ -160,11 +159,11 @@ func (s *Server) getRoomByID(c *gin.Context) {
 		}).Error("Failed to find room")
 
 		switch err.(type) {
-			case *se.NotFoundError:
-				c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
-			default:
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve room", 
-				"details" : "An unexpected error occurred"})
+		case *se.NotFoundError:
+			c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve room",
+				"details": "An unexpected error occurred"})
 		}
 		return
 	}
@@ -204,14 +203,14 @@ func (s *Server) createRoom(c *gin.Context) {
 		}).Error("Failed to create room")
 
 		switch err.(type) {
-			case *se.BadRequestError:
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create room", "details": err.Error()})
-			case *se.NotFoundError:
-				c.JSON(http.StatusNotFound, gin.H{"error": "Failed to create room", "details": err.Error()})
-			case *se.InternalServerError:
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create room"})
-			default:
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create room", 
+		case *se.BadRequestError:
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create room", "details": err.Error()})
+		case *se.NotFoundError:
+			c.JSON(http.StatusNotFound, gin.H{"error": "Failed to create room", "details": err.Error()})
+		case *se.InternalServerError:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create room"})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create room",
 				"details": "An unexpected error occurred"})
 		}
 		return
@@ -252,14 +251,14 @@ func (s *Server) updateRoom(c *gin.Context) {
 		}).Error("Failed to update room")
 
 		switch err.(type) {
-			case *se.BadRequestError:
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to update room", "details": err.Error()})
-			case *se.NotFoundError:
-				c.JSON(http.StatusNotFound, gin.H{"error": "Failed to update room", "details": err.Error()})
-			case *se.InternalServerError:
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update room"})
-			default:
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update room", 
+		case *se.BadRequestError:
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to update room", "details": err.Error()})
+		case *se.NotFoundError:
+			c.JSON(http.StatusNotFound, gin.H{"error": "Failed to update room", "details": err.Error()})
+		case *se.InternalServerError:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update room"})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update room",
 				"details": "An unexpected error occurred"})
 		}
 		return
@@ -269,7 +268,6 @@ func (s *Server) updateRoom(c *gin.Context) {
 
 	c.JSON(http.StatusOK, roomRsp)
 }
-
 
 func (s *Server) book(c *gin.Context) {
 	idStr := c.Param("id")
@@ -284,18 +282,18 @@ func (s *Server) book(c *gin.Context) {
 		return
 	}
 
-	responseDTO, err := s.hotelService.GetExpendedRoomData(id)
+	responseDTO, err := s.hotelService.GetExpandedRoomData(id)
 
 	if err != nil {
 		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Failed to find room")
 		switch err.(type) {
-			case *se.NotFoundError:
-				c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
-			default:
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve room", 
-				"details" : "An unexpected error occurred"})
+		case *se.NotFoundError:
+			c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve room",
+				"details": "An unexpected error occurred"})
 		}
 		return
 	}
