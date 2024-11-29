@@ -8,4 +8,8 @@ type HotelService interface {
 	CreateHotel(toCreate *dto.HotelCreateRequestDTO) (*dto.HotelShortResponseDTO, error) 
 	//Create/Update возвращают только факт изменений 
 	UpdateHotel(id int64, toUpdate *dto.HotelUpdateRequestDTO) (*dto.HotelShortResponseDTO, error)
+
+
+	// Для Марка <3
+	GetExpendedRoomData(id int64) (*dto.FullRoomData, error)
 }

@@ -46,3 +46,14 @@ type HotelShortResponseDTO struct {
 	Adress string            		`json:"adress"`
 	PhoneNumber	string				`json:"phone_number"`
 }
+
+type FullRoomData struct {
+	ID     			int64             		`json:"hotel_id"`
+	Name   			string            		`json:"hotel_name"`
+	Adress 			string            		`json:"hotel_adress"`
+	PhoneNumber		string					`json:"hotelier_number"`
+	RoomId			int64					`json:"room_id"`
+	RoomName      	string   				`json:"room_name"`
+	Price     		string   				`json:"price"`
+	Amenities 		[]string 				`json:"amenities,omitempty"`
+}

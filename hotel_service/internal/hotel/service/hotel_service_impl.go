@@ -68,6 +68,49 @@ func (s *HotelServiceImpl) GetByID(id int64) (*dto.HotelResponseDTO, error) {
 	return dto, nil
 }
 
+func (s *HotelServiceImpl) GetExpendedRoomData(id int64) (*dto.FullRoomData, error) {
+	room, err := s.roomRepository.GetRoomById(id)
+	if err != nil {
+		 logrus.WithTime(time.Now()).WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Unable to retrieve room")
+		if (errors.Is(err, gorm.ErrRecordNotFound)) {
+			return nil, &se.NotFoundError{"Room not found"}
+		}
+
+		return nil, errors.New("Failed to retrieve room")
+	}
+
+	hotel, err := s.hotelRepository.GetHotelById(room.HotelID)
+	if err != nil {
+		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
+		   "error": err.Error(),
+	   }).Error("Unable to retrieve hotel")
+	   if (errors.Is(err, gorm.ErrRecordNotFound)) {
+		   return nil, &se.NotFoundError{"Hotel not found"}
+	   }
+
+	   return nil, errors.New("Failed to retrieve hotel")
+   }
+
+   	responseDTO := dto.FullRoomData{
+		ID: hotel.ID,
+		Name: hotel.Name,
+		Adress: hotel.Adress,
+		PhoneNumber: hotel.PhoneNumber,
+		RoomId: room.ID,
+		RoomName: room.Name,
+		Price: room.Price.String(),
+		Amenities: make([]string, len(room.Amenities)),
+   }
+
+   	for i, amenity := range room.Amenities {
+		responseDTO.Amenities[i] = amenity.Name
+	}
+
+	return &responseDTO, nil
+}
+
 func (s *HotelServiceImpl) GetAll() ([]*dto.HotelResponseDTO, error) {
 	hotels, err := s.hotelRepository.GetAll()
 	if err != nil {

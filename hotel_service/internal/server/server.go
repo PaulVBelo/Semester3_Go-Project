@@ -38,6 +38,7 @@ func (s *Server) routes() {
 	s.router.GET("api/rooms/:id", s.getRoomByID)
 	s.router.POST("api/hotels/:id/room", s.createRoom)
 	s.router.PUT("api/rooms/:id", s.updateRoom)
+	s.router.GET("api/book/:id", s.book)
 }
 
 func (s *Server) Run(port string) error {
@@ -267,4 +268,39 @@ func (s *Server) updateRoom(c *gin.Context) {
 	logrus.WithTime(time.Now()).Info("Room successfully updated")
 
 	c.JSON(http.StatusOK, roomRsp)
+}
+
+
+func (s *Server) book(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
+			"id":    idStr,
+			"error": err.Error(),
+		}).Error("Invalid ID")
+
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	responseDTO, err := s.hotelService.GetExpendedRoomData(id)
+
+	if err != nil {
+		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Failed to find room")
+		switch err.(type) {
+			case *se.NotFoundError:
+				c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
+			default:
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve room", 
+				"details" : "An unexpected error occurred"})
+		}
+		return
+	}
+
+	logrus.WithTime(time.Now()).Info("Room successfully found")
+
+	c.JSON(http.StatusOK, responseDTO)
 }
