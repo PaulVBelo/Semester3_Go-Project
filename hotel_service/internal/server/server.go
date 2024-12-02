@@ -11,12 +11,17 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type Server struct {
 	router       *gin.Engine
 	roomService  serviceR.RoomService
 	hotelService serviceH.HotelService
+	responseTime *prometheus.HistogramVec
 }
 
 func NewServer(hs serviceH.HotelService, rs serviceR.RoomService) *Server {
@@ -26,6 +31,11 @@ func NewServer(hs serviceH.HotelService, rs serviceR.RoomService) *Server {
 		roomService:  rs,
 		hotelService: hs,
 	}
+	s.responseTime = promauto.NewHistogramVec(prometheus.HistogramOpts{
+		Name: "hotel_svc_response_time",
+		Help: "Successful HTTP response time for hotel svc",
+		Buckets: []float64{0.1, 0.5, 1, 5, 10},
+	}, []string{"method", "path"})
 	s.routes()
 	return s
 }
@@ -39,6 +49,8 @@ func (s *Server) routes() {
 	s.router.POST("api/hotels/:id/room", s.createRoom)
 	s.router.PUT("api/rooms/:id", s.updateRoom)
 	s.router.GET("api/book/:id", s.book)
+	
+	s.router.GET("/metrics", s.metrics)
 }
 
 func (s *Server) Run(port string) error {
@@ -46,6 +58,8 @@ func (s *Server) Run(port string) error {
 }
 
 func (s *Server) getAll(c *gin.Context) {
+	start := time.Now()
+
 	hotels, err := s.hotelService.GetAll()
 	if err != nil {
 		switch err.(type) {
@@ -58,9 +72,13 @@ func (s *Server) getAll(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, hotels)
+
+	s.responseTime.WithLabelValues("GET", "/api/hotels").Observe(float64(time.Since(start).Seconds()))
 }
 
 func (s *Server) getHotelByID(c *gin.Context) {
+	start := time.Now()
+
 	idStr := c.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
@@ -80,9 +98,13 @@ func (s *Server) getHotelByID(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, hotel)
+
+	s.responseTime.WithLabelValues("GET", "/api/hotels/:id").Observe(float64(time.Since(start).Seconds()))
 }
 
 func (s *Server) createHotel(c *gin.Context) {
+	start := time.Now()
+
 	var hotel dto.HotelCreateRequestDTO
 	if err := c.ShouldBindJSON(&hotel); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
@@ -106,9 +128,13 @@ func (s *Server) createHotel(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, resp)
+
+	s.responseTime.WithLabelValues("POST", "/api/hotels").Observe(float64(time.Since(start).Seconds()))
 }
 
 func (s *Server) updateHotel(c *gin.Context) {
+	start := time.Now()
+
 	idStr := c.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
@@ -137,9 +163,13 @@ func (s *Server) updateHotel(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, resp)
+
+	s.responseTime.WithLabelValues("PUT", "/api/hotels/:id").Observe(float64(time.Since(start).Seconds()))
 }
 
 func (s *Server) getRoomByID(c *gin.Context) {
+	start := time.Now()
+
 	idStr := c.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
@@ -171,9 +201,13 @@ func (s *Server) getRoomByID(c *gin.Context) {
 	logrus.WithTime(time.Now()).Info("Room successfully found")
 
 	c.JSON(http.StatusOK, room)
+
+	s.responseTime.WithLabelValues("GET", "/api/rooms/:id").Observe(float64(time.Since(start).Seconds()))
 }
 
 func (s *Server) createRoom(c *gin.Context) {
+	start := time.Now()
+
 	var room dto.RoomCreateRequestDTO
 	if err := c.ShouldBindJSON(&room); err != nil {
 		logrus.WithTime(time.Now()).WithFields(logrus.Fields{
@@ -219,9 +253,13 @@ func (s *Server) createRoom(c *gin.Context) {
 	logrus.WithTime(time.Now()).Info("Room successfully created")
 
 	c.JSON(http.StatusCreated, roomRsp)
+
+	s.responseTime.WithLabelValues("POST", "/api/hotels/ïd/room").Observe(float64(time.Since(start).Seconds()))
 }
 
 func (s *Server) updateRoom(c *gin.Context) {
+	start := time.Now()
+
 	idStr := c.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
@@ -267,9 +305,13 @@ func (s *Server) updateRoom(c *gin.Context) {
 	logrus.WithTime(time.Now()).Info("Room successfully updated")
 
 	c.JSON(http.StatusOK, roomRsp)
+
+	s.responseTime.WithLabelValues("PUT", "/api/rooms/:id").Observe(float64(time.Since(start).Seconds()))
 }
 
 func (s *Server) book(c *gin.Context) {
+	start := time.Now()
+
 	idStr := c.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
@@ -301,4 +343,11 @@ func (s *Server) book(c *gin.Context) {
 	logrus.WithTime(time.Now()).Info("Room successfully found")
 
 	c.JSON(http.StatusOK, responseDTO)
+
+	s.responseTime.WithLabelValues("GET", "/api/book/:id").Observe(float64(time.Since(start).Seconds()))
+}
+
+
+func (s *Server) metrics(c *gin.Context) {
+	promhttp.Handler().ServeHTTP(c.Writer, c.Request)
 }
