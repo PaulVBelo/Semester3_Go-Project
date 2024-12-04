@@ -7,4 +7,4 @@ CREATE TABLE booking (
     booking_status      VARCHAR(16)                     NOT NULL
 );
 
--- Чекать на time_from < time_to реклмендую в проге, но можете и добавить check в БД.
+-- Чекать на time_from < time_to рекомендую в проге, но можете и добавить check в БД.
