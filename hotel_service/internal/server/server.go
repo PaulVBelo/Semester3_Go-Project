@@ -21,7 +21,7 @@ type Server struct {
 	router       *gin.Engine
 	roomService  serviceR.RoomService
 	hotelService serviceH.HotelService
-	responseTime *prometheus.HistogramVec
+	responseTime *prometheus.SummaryVec
 }
 
 func NewServer(hs serviceH.HotelService, rs serviceR.RoomService) *Server {
@@ -31,10 +31,9 @@ func NewServer(hs serviceH.HotelService, rs serviceR.RoomService) *Server {
 		roomService:  rs,
 		hotelService: hs,
 	}
-	s.responseTime = promauto.NewHistogramVec(prometheus.HistogramOpts{
+	s.responseTime = promauto.NewSummaryVec(prometheus.SummaryOpts{
 		Name: "hotel_svc_response_time",
 		Help: "Successful HTTP response time for hotel svc",
-		Buckets: []float64{0.1, 0.5, 1, 5, 10},
 	}, []string{"method", "path"})
 	s.routes()
 	return s
@@ -49,7 +48,7 @@ func (s *Server) routes() {
 	s.router.POST("api/hotels/:id/room", s.createRoom)
 	s.router.PUT("api/rooms/:id", s.updateRoom)
 	s.router.GET("api/book/:id", s.book)
-	
+
 	s.router.GET("/metrics", s.metrics)
 }
 
@@ -73,7 +72,7 @@ func (s *Server) getAll(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, hotels)
 
-	s.responseTime.WithLabelValues("GET", "/api/hotels").Observe(float64(time.Since(start).Seconds()))
+	s.responseTime.WithLabelValues("GET", c.FullPath()).Observe(float64(time.Since(start).Seconds()))
 }
 
 func (s *Server) getHotelByID(c *gin.Context) {
@@ -99,7 +98,7 @@ func (s *Server) getHotelByID(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, hotel)
 
-	s.responseTime.WithLabelValues("GET", "/api/hotels/:id").Observe(float64(time.Since(start).Seconds()))
+	s.responseTime.WithLabelValues("GET", c.FullPath()).Observe(float64(time.Since(start).Seconds()))
 }
 
 func (s *Server) createHotel(c *gin.Context) {
@@ -129,7 +128,7 @@ func (s *Server) createHotel(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, resp)
 
-	s.responseTime.WithLabelValues("POST", "/api/hotels").Observe(float64(time.Since(start).Seconds()))
+	s.responseTime.WithLabelValues("POST", c.FullPath()).Observe(float64(time.Since(start).Seconds()))
 }
 
 func (s *Server) updateHotel(c *gin.Context) {
@@ -164,7 +163,7 @@ func (s *Server) updateHotel(c *gin.Context) {
 
 	c.JSON(http.StatusOK, resp)
 
-	s.responseTime.WithLabelValues("PUT", "/api/hotels/:id").Observe(float64(time.Since(start).Seconds()))
+	s.responseTime.WithLabelValues("PUT", c.FullPath()).Observe(float64(time.Since(start).Seconds()))
 }
 
 func (s *Server) getRoomByID(c *gin.Context) {
@@ -202,7 +201,7 @@ func (s *Server) getRoomByID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, room)
 
-	s.responseTime.WithLabelValues("GET", "/api/rooms/:id").Observe(float64(time.Since(start).Seconds()))
+	s.responseTime.WithLabelValues("GET", c.FullPath()).Observe(float64(time.Since(start).Seconds()))
 }
 
 func (s *Server) createRoom(c *gin.Context) {
@@ -254,7 +253,7 @@ func (s *Server) createRoom(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, roomRsp)
 
-	s.responseTime.WithLabelValues("POST", "/api/hotels/ïd/room").Observe(float64(time.Since(start).Seconds()))
+	s.responseTime.WithLabelValues("POST", c.FullPath()).Observe(float64(time.Since(start).Seconds()))
 }
 
 func (s *Server) updateRoom(c *gin.Context) {
@@ -306,7 +305,7 @@ func (s *Server) updateRoom(c *gin.Context) {
 
 	c.JSON(http.StatusOK, roomRsp)
 
-	s.responseTime.WithLabelValues("PUT", "/api/rooms/:id").Observe(float64(time.Since(start).Seconds()))
+	s.responseTime.WithLabelValues("PUT", c.FullPath()).Observe(float64(time.Since(start).Seconds()))
 }
 
 func (s *Server) book(c *gin.Context) {
@@ -344,9 +343,8 @@ func (s *Server) book(c *gin.Context) {
 
 	c.JSON(http.StatusOK, responseDTO)
 
-	s.responseTime.WithLabelValues("GET", "/api/book/:id").Observe(float64(time.Since(start).Seconds()))
+	s.responseTime.WithLabelValues("GET", c.FullPath()).Observe(float64(time.Since(start).Seconds()))
 }
-
 
 func (s *Server) metrics(c *gin.Context) {
 	promhttp.Handler().ServeHTTP(c.Writer, c.Request)
