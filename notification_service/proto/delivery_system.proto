@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package deliverysystem;
+
+option go_package = "gen/";
+
+message BookingEvent {
+  int32 booking_id = 1;
+  string client_phone_number = 2;
+  string time_from = 3;
+  string time_to = 4;
+  string hotel_name = 5;
+  string hotel_address = 6;
+  int32 hotel_id = 7;
+  int32 room_id = 8;
+  string room_name = 9;
+  string payment = 10;
+  repeated string amenities = 11;
+  string hotelier_number = 12;
+}
+
+message BookingRequest {
+  int32 booking_id = 1;
+  string client_phone_number = 2;
+}
+
+message BookingResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+service DeliverySystem {
+  rpc SendBooking(BookingEvent) returns (BookingResponse);
+}
