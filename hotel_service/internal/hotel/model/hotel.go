@@ -1,10 +1,11 @@
 package model
 
 import (
-	"errors"
-	"gorm.io/gorm"
 	"hotel_service/internal/room/model"
+	se "hotel_service/internal/server/errors"
 	"regexp"
+
+	"gorm.io/gorm"
 )
 
 type Hotel struct {
@@ -13,12 +14,12 @@ type Hotel struct {
 	Adress		string			`gorm:"column:hotel_adress;uniqueIndex:idx_name_adress;size:256;not_null"`
 	PhoneNumber	string			`gorm:"column:phone_number;size:32;not_null"`
 
-	Rooms		[]model.Room	`gorm:"foreignKey:HotelID"`
+	Rooms		[]*model.Room	`gorm:"foreignKey:HotelID"`
 }
 
 func(h *Hotel) BeforeSave(tx *gorm.DB) (err error) {
 	if !isValid(h.PhoneNumber) {
-		return errors.New("illegal phone number format")
+		return &se.BadRequestError{"Invalid phone number"}
 	}
 	return nil
 }
