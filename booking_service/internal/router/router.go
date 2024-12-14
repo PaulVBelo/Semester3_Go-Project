@@ -17,6 +17,9 @@ func NewRouter(ctrl *controller.Controller) *chi.Mux {
 		r.Post("/", ctrl.CreateBooking)
 		r.Put("/{id}", ctrl.UpdateBooking)
 		r.Delete("/{id}", ctrl.DeleteBooking)
+
+		// Оплата
+		//router.Post("/{id}/pay", ctrl.ProcessPayment)
 	})
 
 	return router
