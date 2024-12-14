@@ -25,6 +25,5 @@ func HandleBookingEvent(event *gen.BookingEvent) error {
 		return err
 	}
 
-	//log.Printf("Response from delivery system: %v", resp.Status)
 	return nil
 }
