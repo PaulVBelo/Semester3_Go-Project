@@ -7,13 +7,14 @@ import (
 	"log"
 	"notification_service/internal/handler"
 	"notification_service/proto/gen"
+	"os"
 )
 
 func StartKafkaListener(kafkaAddress, topic string) {
 	r := kafka.NewReader(kafka.ReaderConfig{
 		Brokers: []string{kafkaAddress},
 		Topic:   topic,
-		GroupID: "notification-service-group",
+		GroupID: os.Getenv("KAFKA_GROUP"),
 	})
 
 	ctx := context.Background()
