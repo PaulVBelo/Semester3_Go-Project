@@ -19,7 +19,7 @@ type DeliverySystemClient struct {
 func NewDeliverySystemClient(address string) (*DeliverySystemClient, error) {
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
-		log.Printf("Failed to connect to DeliverySystem gRPC server: %v", err)
+		log.Printf("Failed to connect to DeliverySystem handler: %v", err)
 		return nil, err
 	}
 

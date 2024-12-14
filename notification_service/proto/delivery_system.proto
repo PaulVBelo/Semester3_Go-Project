@@ -7,9 +7,10 @@ option go_package = "gen/";
 message BookingEvent {
   int64 booking_id = 1;
   string client_phone_number = 2;
-  string time_from = 3;
-  string time_to = 4;
-  BookingData booking_data = 5;
+  string tg_username = 3;
+  string time_from = 4;
+  string time_to = 5;
+  BookingData booking_data = 6;
 }
 
 message BookingData {
