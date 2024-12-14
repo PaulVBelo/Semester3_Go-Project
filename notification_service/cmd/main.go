@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"notification_service/internal/configs"
-	"notification_service/internal/kafka"
+	"notification_service/internal/listener"
 	"os"
 )
 
@@ -13,7 +13,7 @@ func main() {
 	address := os.Getenv("KAFKA_ADDRESS")
 	topic := os.Getenv("KAFKA_TOPIC")
 
-	kafka.StartKafkaListener(address, topic)
+	listener.StartKafkaListener(address, topic)
 
 	log.Println("Kafka listener started...")
 }
