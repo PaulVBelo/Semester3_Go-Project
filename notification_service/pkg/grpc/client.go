@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"google.golang.org/grpc"
-	pb "notification_service/proto/gen"
+	"notification_service/proto/gen"
 )
 
 type DeliverySystemClient struct {
-	client pb.DeliverySystemClient
+	client gen.DeliverySystemClient
 	conn   *grpc.ClientConn
 	mu     sync.Mutex
 }
@@ -24,19 +24,19 @@ func NewDeliverySystemClient(address string) (*DeliverySystemClient, error) {
 	}
 
 	return &DeliverySystemClient{
-		client: pb.NewDeliverySystemClient(conn),
+		client: gen.NewDeliverySystemClient(conn),
 		conn:   conn,
 	}, nil
 }
 
-func (d *DeliverySystemClient) SendBooking(ctx context.Context, req *pb.BookingEvent) error {
+func (d *DeliverySystemClient) SendBooking(ctx context.Context, event *gen.BookingEvent) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
-	res, err := d.client.SendBooking(ctx, req)
+	res, err := d.client.SendBooking(ctx, event)
 	if err != nil {
 		log.Printf("Error sending booking to DeliverySystem: %v", err)
 		return err

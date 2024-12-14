@@ -9,14 +9,18 @@ message BookingEvent {
   string client_phone_number = 2;
   string time_from = 3;
   string time_to = 4;
-  string hotel_name = 5;
-  string hotel_address = 6;
-  int32 hotel_id = 7;
-  int32 room_id = 8;
-  string room_name = 9;
-  string payment = 10;
-  repeated string amenities = 11;
-  string hotelier_number = 12;
+  BookingData booking_data = 5;
+}
+
+message BookingData {
+  string hotel_name = 1;
+  string hotel_address = 2;
+  int32 hotel_id = 3;
+  int32 room_id = 4;
+  string room_name = 5;
+  string payment = 6;
+  repeated string amenities = 7;
+  string hotelier_number = 8;
 }
 
 message BookingRequest {

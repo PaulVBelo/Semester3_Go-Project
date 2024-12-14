@@ -25,8 +25,6 @@ const (
 // DeliverySystemClient is the client API for DeliverySystem service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-//
-// Определяем сервис
 type DeliverySystemClient interface {
 	SendBooking(ctx context.Context, in *BookingEvent, opts ...grpc.CallOption) (*BookingResponse, error)
 }
@@ -52,8 +50,6 @@ func (c *deliverySystemClient) SendBooking(ctx context.Context, in *BookingEvent
 // DeliverySystemServer is the server API for DeliverySystem service.
 // All implementations must embed UnimplementedDeliverySystemServer
 // for forward compatibility.
-//
-// Определяем сервис
 type DeliverySystemServer interface {
 	SendBooking(context.Context, *BookingEvent) (*BookingResponse, error)
 	mustEmbedUnimplementedDeliverySystemServer()

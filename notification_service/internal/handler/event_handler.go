@@ -10,7 +10,7 @@ import (
 func HandleBookingEvent(event *gen.BookingEvent) error {
 	log.Printf("Received booking event: %+v\n", event)
 
-	client, err := grpc.NewDeliverySystemClient("delivery_service_address:50051")
+	client, err := grpc.NewDeliverySystemClient("delivery_service_address:50051") // TODO тут нужно будет указать адрес delivery svc и порт
 	if err != nil {
 		log.Printf("Failed to create delivery client: %v", err)
 		return err
