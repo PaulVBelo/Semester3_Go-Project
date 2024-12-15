@@ -9,11 +9,13 @@ import (
 )
 
 func HandleBookingEvent(event *gen.BookingEvent) error {
+	stderrLogger := log.New(os.Stderr, "", log.Ldate|log.Ltime)
+
 	log.Printf("Received booking event: %+v\n", event)
 
 	client, err := grpc.NewDeliverySystemClient(os.Getenv("DELIVERY_SERVICE_ADDRESS"))
 	if err != nil {
-		log.Printf("Failed to create delivery client: %v", err)
+		stderrLogger.Printf("Failed to create delivery client: %v", err)
 		return err
 	}
 	defer client.Close()
@@ -21,7 +23,7 @@ func HandleBookingEvent(event *gen.BookingEvent) error {
 	ctx := context.Background()
 	err = client.SendBooking(ctx, event)
 	if err != nil {
-		log.Printf("Failed to send booking event to delivery system: %v", err)
+		stderrLogger.Printf("Failed to send booking event to delivery system: %v", err)
 		return err
 	}
 

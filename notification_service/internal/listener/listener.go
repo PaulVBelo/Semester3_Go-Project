@@ -11,6 +11,8 @@ import (
 )
 
 func StartKafkaListener(kafkaAddress, topic string) {
+	stderrLogger := log.New(os.Stderr, "", log.Ldate|log.Ltime)
+
 	r := kafka.NewReader(kafka.ReaderConfig{
 		Brokers: []string{kafkaAddress},
 		Topic:   topic,
@@ -23,20 +25,20 @@ func StartKafkaListener(kafkaAddress, topic string) {
 	for {
 		m, err := r.ReadMessage(ctx)
 		if err != nil {
-			log.Printf("error reading message from Kafka: %v\n", err)
+			stderrLogger.Printf("error reading message from Kafka: %v\n", err)
 			continue
 		}
 
 		bookingEvent := &gen.BookingEvent{}
 		if err := json.Unmarshal(m.Value, bookingEvent); err != nil {
-			log.Printf("error unmarshaling Kafka message: %v\n", err)
+			stderrLogger.Printf("error unmarshaling Kafka message: %v\n", err)
 			continue
 		}
 
 		log.Printf("Decoded Kafka Event: %+v\n", bookingEvent)
 
 		if err := handler.HandleBookingEvent(bookingEvent); err != nil {
-			log.Printf("error handling Kafka booking event: %v", err)
+			stderrLogger.Printf("error handling Kafka booking event: %v", err)
 		}
 	}
 }

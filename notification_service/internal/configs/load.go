@@ -7,8 +7,10 @@ import (
 )
 
 func LoadConfig() {
+	stderrLogger := log.New(os.Stderr, "", log.Ldate|log.Ltime)
+
 	if err := godotenv.Load(".env.dev"); err != nil {
-		log.Printf("Error loading environment file: %v", err)
+		stderrLogger.Printf("Error loading environment file: %v", err)
 	}
 
 	if os.Getenv("KAFKA_ADDRESS") == "" || os.Getenv("KAFKA_TOPIC") == "" ||

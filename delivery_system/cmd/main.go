@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
+	"os"
 )
 
 type server struct {
@@ -15,8 +16,13 @@ type server struct {
 }
 
 func (s *server) SendBooking(_ context.Context, req *gen.BookingEvent) (*gen.BookingResponse, error) {
+	stderrLogger := log.New(os.Stderr, "", log.Ldate|log.Ltime)
 
-	handler.HandleBookingEvent(req)
+	err := handler.HandleBookingEvent(req)
+	if err != nil {
+		stderrLogger.Printf("failed to handle booking event: %v", err)
+		return nil, err
+	}
 
 	return &gen.BookingResponse{
 		Success: true,
