@@ -3,6 +3,7 @@ package controller
 import (
 	"booking-service/internal/config"
 	"booking-service/internal/models"
+	"booking-service/internal/producer"
 	"booking-service/internal/utils"
 	"encoding/json"
 	"github.com/go-chi/chi/v5"
@@ -11,14 +12,16 @@ import (
 )
 
 type Controller struct {
-	Config *config.Config
-	DB     *gorm.DB
+	Config   *config.Config
+	DB       *gorm.DB
+	producer *producer.BookingEventProducer
 }
 
-func NewController(cfg *config.Config, db *gorm.DB) *Controller {
+func NewController(cfg *config.Config, db *gorm.DB, producer *producer.BookingEventProducer) *Controller {
 	return &Controller{
-		Config: cfg,
-		DB:     db,
+		Config:   cfg,
+		DB:       db,
+		producer: producer,
 	}
 }
 
@@ -38,7 +41,6 @@ func (c *Controller) GetBookingByID(w http.ResponseWriter, r *http.Request) {
 	var booking models.Booking
 	if err := c.DB.First(&booking, id).Error; err != nil {
 		utils.ErrorResponse(w, "Booking not found", err)
-		return
 	}
 	utils.JSONResponse(w, booking)
 }

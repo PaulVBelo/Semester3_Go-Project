@@ -7,7 +7,7 @@ import (
 )
 
 // CheckDateOverlap проверяет, есть ли пересечение дат бронирования для бронирования
-func CheckDateOverlap(db *gorm.DB, roomID uint, timeFrom, timeTo time.Time) (bool, error) {
+func CheckDateOverlap(db *gorm.DB, roomID int64, timeFrom, timeTo time.Time) (bool, error) {
 	var count int64
 
 	err := db.Model(&models.Booking{}).

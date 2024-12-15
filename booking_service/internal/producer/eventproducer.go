@@ -11,7 +11,7 @@ import (
 )
 
 type BookingEventProducer struct {
-	writer 	*kafka.Writer
+	writer *kafka.Writer
 }
 
 func NewEventProducer(topic string, kafkaAddress string) (*BookingEventProducer, error) {
@@ -24,7 +24,7 @@ func NewEventProducer(topic string, kafkaAddress string) (*BookingEventProducer,
 	if w == nil {
 		return nil, errors.New("Failed to connect to Kafka Writer")
 	}
-	
+  
 	return &BookingEventProducer{writer: w}, nil
 }
 
@@ -46,7 +46,6 @@ func (ep *BookingEventProducer) Send(event dto.BookingEventDTO) error {
 	log.Printf("Message sent: %s\n", string(data))
 	return nil
 }
-
 
 func (ep *BookingEventProducer) Close() error {
 	return ep.writer.Close()
