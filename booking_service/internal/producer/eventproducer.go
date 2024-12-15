@@ -16,15 +16,15 @@ type BookingEventProducer struct {
 
 func NewEventProducer(topic string, kafkaAddress string) (*BookingEventProducer, error) {
 	w := kafka.NewWriter(kafka.WriterConfig{
-		Brokers:  []string{kafkaAddress},
-		Topic:    topic,
+		Brokers: []string{kafkaAddress},
+		Topic: topic,
 		Balancer: &kafka.LeastBytes{},
 	})
 
 	if w == nil {
 		return nil, errors.New("Failed to connect to Kafka Writer")
 	}
-
+  
 	return &BookingEventProducer{writer: w}, nil
 }
 
@@ -34,7 +34,7 @@ func (ep *BookingEventProducer) Send(event dto.BookingEventDTO) error {
 		return err
 	}
 
-	msg := kafka.Message{
+	msg := kafka.Message {
 		Value: data,
 	}
 
