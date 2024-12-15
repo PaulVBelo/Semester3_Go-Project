@@ -14,7 +14,7 @@ func LoadConfig() {
 		TimestampFormat: "2006-01-02 15:04:05",
 	})
 
-	if err := godotenv.Load(".env.dev"); err != nil {
+	if err := godotenv.Load("../.env.dev"); err != nil {
 		logger.WithFields(logrus.Fields{
 			"service": "notification_service",
 			"error":   err,
