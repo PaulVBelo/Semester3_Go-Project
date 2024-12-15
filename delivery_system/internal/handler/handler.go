@@ -82,13 +82,11 @@ func HandleBookingEvent(event *gen.BookingEvent) error {
 	}).Info("Received booking event")
 
 	if event.TgUsername != "" {
-		bold := "\033[1m"
-		reset := "\033[0m"
-		message := bold + "📅 Booking Confirmation\n" + reset +
+		message := "📅 Booking Confirmation\n" +
 			"🏨 Hotel name: " + event.BookingData.HotelName + "\n" +
 			"🛏️ Room name: " + event.BookingData.RoomName + "\n" +
-			"⏰ Time from: " + event.TimeFrom +
-			"⏰ Time to: " + event.TimeTo +
+			"⏰ Time from: " + event.TimeFrom + "\n" +
+			"⏰ Time to: " + event.TimeTo + "\n" +
 			"🔑 Booking ID: " + strconv.FormatInt(event.BookingId, 10) + "\n"
 
 		err := sendMessageToTelegram(event.TgUsername, message)
