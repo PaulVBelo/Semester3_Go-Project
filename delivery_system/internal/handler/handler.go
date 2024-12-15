@@ -34,21 +34,37 @@ func sendMessageToTelegram(username, message string) error {
 		return err
 	}
 
-	msg := tgbotapi.NewMessageToChannel("@"+username, message)
+	//msg := tgbotapi.NewMessage(960397857, message)
 
-	_, err = bot.Send(msg)
+	updates, err := bot.GetUpdates(tgbotapi.NewUpdate(0))
 	if err != nil {
 		logger.WithFields(logrus.Fields{
 			"service": "delivery_system",
-			"error":   err,
-		}).Error("Failed to send Telegram message")
-		return err
+		}).Fatal("Error while getting updates:", err)
 	}
 
-	logger.WithFields(logrus.Fields{
-		"service":  "delivery_system",
-		"username": username,
-	}).Info("Telegram message sent successfully")
+	for _, update := range updates {
+		if update.Message != nil {
+			chatID := update.Message.Chat.ID
+
+			msg := tgbotapi.NewMessage(chatID, message)
+			_, err = bot.Send(msg)
+			if err != nil {
+				logger.WithFields(logrus.Fields{
+					"service": "delivery_system",
+					"error":   err,
+				}).Error("Failed to send Telegram message")
+				return err
+			}
+
+			logger.WithFields(logrus.Fields{
+				"service":  "delivery_system",
+				"username": username,
+			}).Info("Telegram message sent successfully")
+			return nil
+		}
+	}
+
 	return nil
 }
 
@@ -66,10 +82,14 @@ func HandleBookingEvent(event *gen.BookingEvent) error {
 	}).Info("Received booking event")
 
 	if event.TgUsername != "" {
-		message := "Booking Confirmation\n" +
-			"Hotel name: " + event.BookingData.HotelName + "\n" +
-			"Room name: " + event.BookingData.RoomName + "\n" +
-			"Booking ID: " + strconv.FormatInt(event.BookingId, 10) + "\n"
+		bold := "\033[1m"
+		reset := "\033[0m"
+		message := bold + "📅 Booking Confirmation\n" + reset +
+			"🏨 Hotel name: " + event.BookingData.HotelName + "\n" +
+			"🛏️ Room name: " + event.BookingData.RoomName + "\n" +
+			"⏰ Time from: " + event.TimeFrom +
+			"⏰ Time to: " + event.TimeTo +
+			"🔑 Booking ID: " + strconv.FormatInt(event.BookingId, 10) + "\n"
 
 		err := sendMessageToTelegram(event.TgUsername, message)
 		if err != nil {
