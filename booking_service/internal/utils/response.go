@@ -2,7 +2,8 @@ package utils
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"errors"
+	"io"
 	"net/http"
 )
 
@@ -34,15 +35,16 @@ func jsonError(message, details string) string {
 
 func ParseJSONBody(r *http.Request, dest interface{}) error {
 	// Чтение тела запроса
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		return err
+		return errors.New("failed to read request body: " + err.Error())
 	}
 	defer r.Body.Close()
 
 	// Декодирование JSON в структуру
 	if err := json.Unmarshal(body, dest); err != nil {
-		return err
+		return errors.New("failed to unmarshal JSON: " + err.Error())
 	}
+
 	return nil
 }
