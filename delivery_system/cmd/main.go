@@ -4,11 +4,10 @@ import (
 	"context"
 	"delivery_system/internal/handler"
 	"delivery_system/proto/gen"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	"log"
 	"net"
-	"os"
 )
 
 type server struct {
@@ -16,11 +15,19 @@ type server struct {
 }
 
 func (s *server) SendBooking(_ context.Context, req *gen.BookingEvent) (*gen.BookingResponse, error) {
-	stderrLogger := log.New(os.Stderr, "", log.Ldate|log.Ltime)
+	logger := logrus.New()
+	logger.SetFormatter(&logrus.TextFormatter{
+		DisableColors:   false,
+		FullTimestamp:   true,
+		TimestampFormat: "2006-01-02 15:04:05",
+	})
 
 	err := handler.HandleBookingEvent(req)
 	if err != nil {
-		stderrLogger.Printf("failed to handle booking event: %v", err)
+		logger.WithFields(logrus.Fields{
+			"service": "delivery_system",
+			"error":   err,
+		}).Error("failed to handle booking event")
 		return nil, err
 	}
 
@@ -31,9 +38,19 @@ func (s *server) SendBooking(_ context.Context, req *gen.BookingEvent) (*gen.Boo
 }
 
 func main() {
+	logger := logrus.New()
+	logger.SetFormatter(&logrus.TextFormatter{
+		DisableColors:   false,
+		FullTimestamp:   true,
+		TimestampFormat: "2006-01-02 15:04:05",
+	})
+
 	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		logger.WithFields(logrus.Fields{
+			"service": "delivery_system",
+			"error":   err,
+		}).Fatal("failed to listen")
 	}
 
 	s := grpc.NewServer()
@@ -42,8 +59,13 @@ func main() {
 
 	reflection.Register(s)
 
-	log.Println("Delivery system started listening...")
+	logger.WithFields(logrus.Fields{
+		"service": "delivery_system",
+	}).Info("Delivery system started listening...")
 	if err := s.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+		logger.WithFields(logrus.Fields{
+			"service": "delivery_system",
+			"error":   err,
+		}).Fatal("failed to serve")
 	}
 }
