@@ -14,6 +14,7 @@ type BookingData struct {
 type BookingEventDTO struct {
 	BookingId		int64					`json:"booking_id"`
 	ClientNumber	string					`json:"client_phone_number"`
+	TGUSername		string					`json:"tg_username"`
 	TimeFrom		string					`json:"time_from"`
 	TimeTo			string					`json:"time_to"`
 	Data			BookingData				`json:"booking_data"`
