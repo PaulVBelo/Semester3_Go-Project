@@ -10,15 +10,17 @@ import (
 )
 
 func sendMessageToTelegram(username, message string) error {
+	stderrLogger := log.New(os.Stderr, "", log.Ldate|log.Ltime)
+
 	botToken := os.Getenv("API_TOKEN")
 	if botToken == "" {
-		log.Println("Telegram bot token is not set")
+		stderrLogger.Println("Telegram bot token is not set")
 		return nil
 	}
 
 	bot, err := tgbotapi.NewBotAPI(botToken)
 	if err != nil {
-		log.Printf("Failed to create Telegram bot: %v", err)
+		stderrLogger.Printf("Failed to create Telegram bot: %v", err)
 		return err
 	}
 
@@ -26,7 +28,7 @@ func sendMessageToTelegram(username, message string) error {
 
 	_, err = bot.Send(msg)
 	if err != nil {
-		log.Printf("Failed to send Telegram message: %v", err)
+		stderrLogger.Printf("Failed to send Telegram message: %v", err)
 		return err
 	}
 
@@ -35,6 +37,8 @@ func sendMessageToTelegram(username, message string) error {
 }
 
 func HandleBookingEvent(event *gen.BookingEvent) error {
+	stderrLogger := log.New(os.Stderr, "", log.Ldate|log.Ltime)
+
 	log.Printf("Received booking event: %+v\n", event)
 
 	if event.TgUsername != "" {
@@ -45,7 +49,7 @@ func HandleBookingEvent(event *gen.BookingEvent) error {
 
 		err := sendMessageToTelegram(event.TgUsername, message)
 		if err != nil {
-			log.Printf("Failed to send message to Telegram: %v", err)
+			stderrLogger.Printf("Failed to send message to Telegram: %v", err)
 		}
 	}
 

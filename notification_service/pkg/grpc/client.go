@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"log"
+	"os"
 	"sync"
 	"time"
 
@@ -17,9 +18,11 @@ type DeliverySystemClient struct {
 }
 
 func NewDeliverySystemClient(address string) (*DeliverySystemClient, error) {
+	stderrLogger := log.New(os.Stderr, "", log.Ldate|log.Ltime)
+
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
-		log.Printf("Failed to connect to DeliverySystem handler: %v", err)
+		stderrLogger.Printf("Failed to connect to DeliverySystem handler: %v", err)
 		return nil, err
 	}
 
@@ -30,6 +33,8 @@ func NewDeliverySystemClient(address string) (*DeliverySystemClient, error) {
 }
 
 func (d *DeliverySystemClient) SendBooking(ctx context.Context, event *gen.BookingEvent) error {
+	stderrLogger := log.New(os.Stderr, "", log.Ldate|log.Ltime)
+
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
@@ -38,21 +43,23 @@ func (d *DeliverySystemClient) SendBooking(ctx context.Context, event *gen.Booki
 
 	res, err := d.client.SendBooking(ctx, event)
 	if err != nil {
-		log.Printf("Error sending booking to DeliverySystem: %v", err)
+		stderrLogger.Printf("Error sending booking to DeliverySystem: %v", err)
 		return err
 	}
 
 	if res.Success {
 		log.Printf("Successfully sent booking to DeliverySystem: %v", res.Message)
 	} else {
-		log.Printf("DeliverySystem responded with failure: %v", res.Message)
+		stderrLogger.Printf("DeliverySystem responded with failure: %v", res.Message)
 	}
 
 	return nil
 }
 
 func (d *DeliverySystemClient) Close() {
+	stderrLogger := log.New(os.Stderr, "", log.Ldate|log.Ltime)
+
 	if err := d.conn.Close(); err != nil {
-		log.Printf("Failed to close gRPC connection: %v", err)
+		stderrLogger.Printf("Failed to close gRPC connection: %v", err)
 	}
 }
