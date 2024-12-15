@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"delivery_system/internal/configs"
 	"delivery_system/internal/handler"
 	"delivery_system/proto/gen"
 	"github.com/sirupsen/logrus"
@@ -38,6 +39,8 @@ func (s *server) SendBooking(_ context.Context, req *gen.BookingEvent) (*gen.Boo
 }
 
 func main() {
+	configs.LoadConfig()
+
 	logger := logrus.New()
 	logger.SetFormatter(&logrus.TextFormatter{
 		DisableColors:   false,

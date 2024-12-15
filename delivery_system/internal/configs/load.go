@@ -14,15 +14,14 @@ func LoadConfig() {
 		TimestampFormat: "2006-01-02 15:04:05",
 	})
 
-	if err := godotenv.Load("../.env.dev"); err != nil {
+	if err := godotenv.Load(".env.dev"); err != nil {
 		logger.WithFields(logrus.Fields{
-			"service": "notification_service",
+			"service": "delivery_system",
 			"error":   err,
 		}).Error("Error loading environment file")
 	}
 
-	if os.Getenv("KAFKA_ADDRESS") == "" || os.Getenv("KAFKA_TOPIC") == "" ||
-		os.Getenv("DELIVERY_SERVICE_ADDRESS") == "" || os.Getenv("KAFKA_GROUP") == "" {
+	if os.Getenv("API_TOKEN") == "" {
 		logger.WithFields(logrus.Fields{
 			"service": "delivery_system",
 		}).Fatal("Environment variables must be set in .env.dev")
