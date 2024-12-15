@@ -4,38 +4,47 @@ import (
 	"booking-service/internal/config"
 	"booking-service/internal/controller"
 	"booking-service/internal/db"
+	"booking-service/internal/producer"
 	"booking-service/internal/router"
 	"context"
 	"fmt"
-	"gorm.io/gorm"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 func main() {
-	// Загружаем конфигурацию
+	// Load configuration
 	cfg, err := config.LoadConfig(".env.dev")
 	if err != nil {
 		log.Fatalf("Error loading config: %v", err)
 	}
 
-	// Подключение к базе данных
+	// Connect to the database
 	conn, err := db.ConnectPostgres(cfg)
 	if err != nil {
 		log.Fatalf("Error connecting to database: %v", err)
 	}
 	defer closeDB(conn)
 
-	// Создаем контроллер
-	ctrl := controller.NewController(cfg, conn)
+	// Initialize BookingEventProducer
+	kafkaProducer, err := producer.NewEventProducer("booking-topic", "localhost:29093")
+	if err != nil {
+		log.Fatalf("Error initializing Kafka producer: %v", err)
+	}
+	defer kafkaProducer.Close()
 
-	// Настройка маршрутов
+	// Create controller
+	ctrl := controller.NewController(cfg, conn, kafkaProducer)
+
+	// Setup routes
 	r := router.NewRouter(ctrl)
 
-	// Настройка graceful shutdown
+	// Setup graceful shutdown
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%s", cfg.Port),
 		Handler: r,
@@ -48,7 +57,7 @@ func main() {
 		}
 	}()
 
-	gracefulShutdown(server, conn)
+	gracefulShutdown(server, conn, kafkaProducer)
 }
 
 func closeDB(conn *gorm.DB) {
@@ -58,7 +67,7 @@ func closeDB(conn *gorm.DB) {
 	}
 }
 
-func gracefulShutdown(server *http.Server, db *gorm.DB) {
+func gracefulShutdown(server *http.Server, db *gorm.DB, producer *producer.BookingEventProducer) {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 
@@ -73,5 +82,11 @@ func gracefulShutdown(server *http.Server, db *gorm.DB) {
 	}
 
 	closeDB(db)
+
+	// Close Kafka producer
+	if err := producer.Close(); err != nil {
+		log.Printf("Error closing Kafka producer: %v", err)
+	}
+
 	log.Println("Server exited gracefully")
 }

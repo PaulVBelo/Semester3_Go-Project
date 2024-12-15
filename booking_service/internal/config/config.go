@@ -13,6 +13,7 @@ type Config struct {
 	DBPassword string
 	DBName     string
 	Port       string
+	HOTEL_PORT string
 }
 
 func LoadConfig(envPath string) (*Config, error) {
@@ -27,5 +28,6 @@ func LoadConfig(envPath string) (*Config, error) {
 		DBPassword: os.Getenv("DB_PASSWORD"),
 		DBName:     os.Getenv("DB_NAME"),
 		Port:       os.Getenv("PORT"),
+		HOTEL_PORT: os.Getenv("HOTEL_PORT"),
 	}, nil
 }
