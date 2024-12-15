@@ -4,14 +4,19 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/segmentio/kafka-go"
-	"log"
+	"github.com/sirupsen/logrus"
 	"notification_service/internal/handler"
 	"notification_service/proto/gen"
 	"os"
 )
 
 func StartKafkaListener(kafkaAddress, topic string) {
-	stderrLogger := log.New(os.Stderr, "", log.Ldate|log.Ltime)
+	logger := logrus.New()
+	logger.SetFormatter(&logrus.TextFormatter{
+		DisableColors:   false,
+		FullTimestamp:   true,
+		TimestampFormat: "2006-01-02 15:04:05",
+	})
 
 	r := kafka.NewReader(kafka.ReaderConfig{
 		Brokers: []string{kafkaAddress},
@@ -21,24 +26,39 @@ func StartKafkaListener(kafkaAddress, topic string) {
 
 	ctx := context.Background()
 
-	log.Println("Kafka listener started...")
+	logger.WithFields(logrus.Fields{
+		"service": "notification_service",
+	}).Info("Kafka listener started...")
+
 	for {
 		m, err := r.ReadMessage(ctx)
 		if err != nil {
-			stderrLogger.Printf("error reading message from Kafka: %v\n", err)
+			logger.WithFields(logrus.Fields{
+				"service": "notification_service",
+				"error":   err,
+			}).Error("Error reading message from Kafka")
 			continue
 		}
 
 		bookingEvent := &gen.BookingEvent{}
 		if err := json.Unmarshal(m.Value, bookingEvent); err != nil {
-			stderrLogger.Printf("error unmarshaling Kafka message: %v\n", err)
+			logger.WithFields(logrus.Fields{
+				"service": "notification_service",
+				"error":   err,
+			}).Error("Error unmarshaling Kafka message")
 			continue
 		}
 
-		log.Printf("Decoded Kafka Event: %+v\n", bookingEvent)
+		logger.WithFields(logrus.Fields{
+			"service": "notification_service",
+			"event":   bookingEvent,
+		}).Info("Decoded Kafka Event")
 
 		if err := handler.HandleBookingEvent(bookingEvent); err != nil {
-			stderrLogger.Printf("error handling Kafka booking event: %v", err)
+			logger.WithFields(logrus.Fields{
+				"service": "notification_service",
+				"error":   err,
+			}).Error("Error handling Kafka booking event")
 		}
 	}
 }

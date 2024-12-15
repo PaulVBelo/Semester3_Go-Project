@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"log"
+	"github.com/sirupsen/logrus"
 	"os"
 	"strconv"
 
@@ -10,17 +10,27 @@ import (
 )
 
 func sendMessageToTelegram(username, message string) error {
-	stderrLogger := log.New(os.Stderr, "", log.Ldate|log.Ltime)
+	logger := logrus.New()
+	logger.SetFormatter(&logrus.TextFormatter{
+		DisableColors:   false,
+		FullTimestamp:   true,
+		TimestampFormat: "2006-01-02 15:04:05",
+	})
 
 	botToken := os.Getenv("API_TOKEN")
 	if botToken == "" {
-		stderrLogger.Println("Telegram bot token is not set")
+		logger.WithFields(logrus.Fields{
+			"service": "delivery_system",
+		}).Error("Telegram bot token is not set")
 		return nil
 	}
 
 	bot, err := tgbotapi.NewBotAPI(botToken)
 	if err != nil {
-		stderrLogger.Printf("Failed to create Telegram bot: %v", err)
+		logger.WithFields(logrus.Fields{
+			"service": "delivery_system",
+			"error":   err,
+		}).Error("Failed to create Telegram bot")
 		return err
 	}
 
@@ -28,18 +38,32 @@ func sendMessageToTelegram(username, message string) error {
 
 	_, err = bot.Send(msg)
 	if err != nil {
-		stderrLogger.Printf("Failed to send Telegram message: %v", err)
+		logger.WithFields(logrus.Fields{
+			"service": "delivery_system",
+			"error":   err,
+		}).Error("Failed to send Telegram message")
 		return err
 	}
 
-	log.Printf("Telegram message sent successfully to user: @%s", username)
+	logger.WithFields(logrus.Fields{
+		"service":  "delivery_system",
+		"username": username,
+	}).Info("Telegram message sent successfully")
 	return nil
 }
 
 func HandleBookingEvent(event *gen.BookingEvent) error {
-	stderrLogger := log.New(os.Stderr, "", log.Ldate|log.Ltime)
+	logger := logrus.New()
+	logger.SetFormatter(&logrus.TextFormatter{
+		DisableColors:   false,
+		FullTimestamp:   true,
+		TimestampFormat: "2006-01-02 15:04:05",
+	})
 
-	log.Printf("Received booking event: %+v\n", event)
+	logger.WithFields(logrus.Fields{
+		"service": "delivery_system",
+		"event":   event,
+	}).Info("Received booking event")
 
 	if event.TgUsername != "" {
 		message := "Booking Confirmation\n" +
@@ -49,7 +73,11 @@ func HandleBookingEvent(event *gen.BookingEvent) error {
 
 		err := sendMessageToTelegram(event.TgUsername, message)
 		if err != nil {
-			stderrLogger.Printf("Failed to send message to Telegram: %v", err)
+			logger.WithFields(logrus.Fields{
+				"service":  "delivery_system",
+				"username": event.TgUsername,
+				"error":    err,
+			}).Error("Failed to send message to Telegram")
 		}
 	}
 

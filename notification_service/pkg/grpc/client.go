@@ -2,8 +2,7 @@ package grpc
 
 import (
 	"context"
-	"log"
-	"os"
+	"github.com/sirupsen/logrus"
 	"sync"
 	"time"
 
@@ -18,11 +17,20 @@ type DeliverySystemClient struct {
 }
 
 func NewDeliverySystemClient(address string) (*DeliverySystemClient, error) {
-	stderrLogger := log.New(os.Stderr, "", log.Ldate|log.Ltime)
+	logger := logrus.New()
+	logger.SetFormatter(&logrus.TextFormatter{
+		DisableColors:   false,
+		FullTimestamp:   true,
+		TimestampFormat: "2006-01-02 15:04:05",
+	})
 
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
-		stderrLogger.Printf("Failed to connect to DeliverySystem handler: %v", err)
+		logger.WithFields(logrus.Fields{
+			"service": "notification_service",
+			"address": address,
+			"error":   err,
+		}).Error("Failed to connect to DeliverySystem handler")
 		return nil, err
 	}
 
@@ -33,7 +41,12 @@ func NewDeliverySystemClient(address string) (*DeliverySystemClient, error) {
 }
 
 func (d *DeliverySystemClient) SendBooking(ctx context.Context, event *gen.BookingEvent) error {
-	stderrLogger := log.New(os.Stderr, "", log.Ldate|log.Ltime)
+	logger := logrus.New()
+	logger.SetFormatter(&logrus.TextFormatter{
+		DisableColors:   false,
+		FullTimestamp:   true,
+		TimestampFormat: "2006-01-02 15:04:05",
+	})
 
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
@@ -43,23 +56,40 @@ func (d *DeliverySystemClient) SendBooking(ctx context.Context, event *gen.Booki
 
 	res, err := d.client.SendBooking(ctx, event)
 	if err != nil {
-		stderrLogger.Printf("Error sending booking to DeliverySystem: %v", err)
+		logger.WithFields(logrus.Fields{
+			"service": "notification_service",
+			"error":   err,
+		}).Error("Error sending booking to DeliverySystem")
 		return err
 	}
 
 	if res.Success {
-		log.Printf("Successfully sent booking to DeliverySystem: %v", res.Message)
+		logger.WithFields(logrus.Fields{
+			"service": "notification_service",
+			"message": res.Message,
+		}).Info("Successfully sent booking to DeliverySystem")
 	} else {
-		stderrLogger.Printf("DeliverySystem responded with failure: %v", res.Message)
+		logger.WithFields(logrus.Fields{
+			"service": "notification_service",
+			"message": res.Message,
+		}).Error("DeliverySystem responded with failure")
 	}
 
 	return nil
 }
 
 func (d *DeliverySystemClient) Close() {
-	stderrLogger := log.New(os.Stderr, "", log.Ldate|log.Ltime)
+	logger := logrus.New()
+	logger.SetFormatter(&logrus.TextFormatter{
+		DisableColors:   false,
+		FullTimestamp:   true,
+		TimestampFormat: "2006-01-02 15:04:05",
+	})
 
 	if err := d.conn.Close(); err != nil {
-		stderrLogger.Printf("Failed to close gRPC connection: %v", err)
+		logger.WithFields(logrus.Fields{
+			"service": "notification_service",
+			"error":   err,
+		}).Error("Failed to close gRPC connection")
 	}
 }

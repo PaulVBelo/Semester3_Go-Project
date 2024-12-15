@@ -2,19 +2,27 @@ package configs
 
 import (
 	"github.com/joho/godotenv"
-	"log"
+	"github.com/sirupsen/logrus"
 	"os"
 )
 
 func LoadConfig() {
-	stderrLogger := log.New(os.Stderr, "", log.Ldate|log.Ltime)
+	logger := logrus.New()
+	logger.SetFormatter(&logrus.TextFormatter{
+		DisableColors:   false,
+		FullTimestamp:   true,
+		TimestampFormat: "2006-01-02 15:04:05",
+	})
 
 	if err := godotenv.Load(".env.dev"); err != nil {
-		stderrLogger.Printf("Error loading environment file: %v", err)
+		logger.WithFields(logrus.Fields{
+			"service": "notification_service",
+			"error":   err,
+		}).Error("Error loading environment file")
 	}
 
 	if os.Getenv("KAFKA_ADDRESS") == "" || os.Getenv("KAFKA_TOPIC") == "" ||
 		os.Getenv("DELIVERY_SERVICE_ADDRESS") == "" || os.Getenv("KAFKA_GROUP") == "" {
-		log.Fatal("Environment variables must be set in .env.dev")
+		logger.Fatal("Environment variables must be set in .env.dev")
 	}
 }
