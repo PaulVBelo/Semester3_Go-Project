@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"delivery_system/internal/handler"
 	"delivery_system/proto/gen"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -10,6 +12,16 @@ import (
 
 type server struct {
 	gen.UnimplementedDeliverySystemServer
+}
+
+func (s *server) SendBooking(_ context.Context, req *gen.BookingEvent) (*gen.BookingResponse, error) {
+
+	handler.HandleBookingEvent(req)
+
+	return &gen.BookingResponse{
+		Success: true,
+		Message: "Booking processed successfully",
+	}, nil
 }
 
 func main() {

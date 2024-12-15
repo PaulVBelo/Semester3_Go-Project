@@ -19,14 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	DeliverySystem_HandleBookingEvent_FullMethodName = "/deliverysystem.DeliverySystem/HandleBookingEvent"
+	DeliverySystem_SendBooking_FullMethodName = "/deliverysystem.DeliverySystem/SendBooking"
 )
 
 // DeliverySystemClient is the client API for DeliverySystem service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DeliverySystemClient interface {
-	HandleBookingEvent(ctx context.Context, in *BookingEvent, opts ...grpc.CallOption) (*BookingResponse, error)
+	SendBooking(ctx context.Context, in *BookingEvent, opts ...grpc.CallOption) (*BookingResponse, error)
 }
 
 type deliverySystemClient struct {
@@ -37,10 +37,10 @@ func NewDeliverySystemClient(cc grpc.ClientConnInterface) DeliverySystemClient {
 	return &deliverySystemClient{cc}
 }
 
-func (c *deliverySystemClient) HandleBookingEvent(ctx context.Context, in *BookingEvent, opts ...grpc.CallOption) (*BookingResponse, error) {
+func (c *deliverySystemClient) SendBooking(ctx context.Context, in *BookingEvent, opts ...grpc.CallOption) (*BookingResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(BookingResponse)
-	err := c.cc.Invoke(ctx, DeliverySystem_HandleBookingEvent_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, DeliverySystem_SendBooking_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (c *deliverySystemClient) HandleBookingEvent(ctx context.Context, in *Booki
 // All implementations must embed UnimplementedDeliverySystemServer
 // for forward compatibility.
 type DeliverySystemServer interface {
-	HandleBookingEvent(context.Context, *BookingEvent) (*BookingResponse, error)
+	SendBooking(context.Context, *BookingEvent) (*BookingResponse, error)
 	mustEmbedUnimplementedDeliverySystemServer()
 }
 
@@ -62,8 +62,8 @@ type DeliverySystemServer interface {
 // pointer dereference when methods are called.
 type UnimplementedDeliverySystemServer struct{}
 
-func (UnimplementedDeliverySystemServer) HandleBookingEvent(context.Context, *BookingEvent) (*BookingResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method HandleBookingEvent not implemented")
+func (UnimplementedDeliverySystemServer) SendBooking(context.Context, *BookingEvent) (*BookingResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendBooking not implemented")
 }
 func (UnimplementedDeliverySystemServer) mustEmbedUnimplementedDeliverySystemServer() {}
 func (UnimplementedDeliverySystemServer) testEmbeddedByValue()                        {}
@@ -86,20 +86,20 @@ func RegisterDeliverySystemServer(s grpc.ServiceRegistrar, srv DeliverySystemSer
 	s.RegisterService(&DeliverySystem_ServiceDesc, srv)
 }
 
-func _DeliverySystem_HandleBookingEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _DeliverySystem_SendBooking_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(BookingEvent)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DeliverySystemServer).HandleBookingEvent(ctx, in)
+		return srv.(DeliverySystemServer).SendBooking(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: DeliverySystem_HandleBookingEvent_FullMethodName,
+		FullMethod: DeliverySystem_SendBooking_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DeliverySystemServer).HandleBookingEvent(ctx, req.(*BookingEvent))
+		return srv.(DeliverySystemServer).SendBooking(ctx, req.(*BookingEvent))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -112,8 +112,8 @@ var DeliverySystem_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*DeliverySystemServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "HandleBookingEvent",
-			Handler:    _DeliverySystem_HandleBookingEvent_Handler,
+			MethodName: "SendBooking",
+			Handler:    _DeliverySystem_SendBooking_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -30,9 +30,10 @@ message BookingRequest {
 }
 
 message BookingResponse {
-  string status = 1;
+  bool success = 1;
+  string message = 2;
 }
 
 service DeliverySystem {
-  rpc HandleBookingEvent(BookingEvent) returns (BookingResponse);
+  rpc SendBooking(BookingEvent) returns (BookingResponse);
 }
