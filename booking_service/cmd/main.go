@@ -32,7 +32,7 @@ func main() {
 	defer closeDB(conn)
 
 	// Initialize BookingEventProducer
-	kafkaProducer, err := producer.NewEventProducer("booking-topic", "localhost:29093")
+	kafkaProducer, err := producer.NewEventProducer("booking-event", "localhost:29093")
 	if err != nil {
 		log.Fatalf("Error initializing Kafka producer: %v", err)
 	}
